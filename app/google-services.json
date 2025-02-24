@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "854929668042",
+    "project_id": "mailapp-c17bb",
+    "storage_bucket": "mailapp-c17bb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:854929668042:android:306b3c434976923ae9c133",
+        "android_client_info": {
+          "package_name": "com.example.mailapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBdgzrpTaS7bghOG_YqFXKzKLdSwXkma_A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
