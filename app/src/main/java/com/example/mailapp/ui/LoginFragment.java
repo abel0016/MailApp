@@ -2,6 +2,7 @@ package com.example.mailapp.ui;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,8 @@ import com.example.mailapp.R;
 import com.example.mailapp.databinding.FragmentLoginBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 
 public class LoginFragment extends Fragment {
     private FragmentLoginBinding binding;
@@ -22,7 +25,6 @@ public class LoginFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Usar ViewBinding
         binding = FragmentLoginBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -45,36 +47,47 @@ public class LoginFragment extends Fragment {
     private void loginUsuario() {
         String email = binding.etEmailLogin.getText().toString().trim();
         String password = binding.etPasswordLogin.getText().toString().trim();
-
-        // Limpiar errores previos
         limpiarErrores();
-
         boolean valido = true;
 
         if (TextUtils.isEmpty(email)) {
-            binding.textInputLayoutEmailLogin.setError("Ingrese su correo electrónico");
+            binding.etEmailLogin.setError("Ingrese su correo electrónico");
             valido = false;
         }
-
         if (TextUtils.isEmpty(password)) {
-            binding.textInputLayoutPasswordLogin.setError("Ingrese su contraseña");
+            binding.etPasswordLogin.setError("Ingrese su contraseña");
             valido = false;
         }
-
         if (!valido) return;
-
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
+                //Si el login es correcto naveamos al RecibidosFragment que actúa como home
                 navController.navigate(R.id.action_loginFragment_to_welcomeFragment);
-            } else {
-                binding.textInputLayoutEmailLogin.setError("Error: " + task.getException().getMessage());
+            }else{
+                try {
+                    throw task.getException();
+                } catch (FirebaseAuthInvalidUserException e) {
+                    //Mensaje para cuando el correo no está registrado
+                    binding.etEmailLogin.setError("El correo electrónico introducido no está registrado o es incorrecto");
+                } catch (FirebaseAuthInvalidCredentialsException e) {
+                    //Mensaje para cuando la contraseña no coincide con la del correo
+                    binding.etPasswordLogin.setError("La contraseña introducida no es correcta");
+                } catch (Exception e) {
+                    //Mensaje para otro tipo de error
+                    //He puesto el Log.e para ver el error en el logcat, siempre me da el mismo, por lo que sea FireBase no me devuelve el error especifico
+                    //Siempre me dice lo mismo IVALID_LOGIN_CREDENTIALS
+                    //Se puede hacer que cuando se de este error simplemente en el setError de ambos campos podemos poner usuario o contraseña incorrectos
+                    //pero prefiero especificar mas el error. Preguntar a Jose Ángel
+                    Log.e("LoginError", "Error de autenticación", e);
+                    binding.etPasswordLogin.setError("Error: " + e.getMessage());
+                }
             }
-        });
+            });
     }
 
     private void limpiarErrores() {
-        binding.textInputLayoutEmailLogin.setError(null);
-        binding.textInputLayoutPasswordLogin.setError(null);
+        binding.etEmailLogin.setError(null);
+        binding.etPasswordLogin.setError(null);
     }
 
     @Override

@@ -27,7 +27,6 @@ public class RegistroFragment extends Fragment {
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Usar ViewBinding
         binding = FragmentRegistroBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -36,15 +35,11 @@ public class RegistroFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Inicializar Firebase y Navigation
+        //Inicializar Firebase y Navigation
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference("Usuarios");
         navController = Navigation.findNavController(view);
-
-        // Botón de volver
         binding.btnBack.setOnClickListener(v -> navController.navigate(R.id.action_registerFragment_to_welcomeFragment));
-
-        // Botón de registro
         binding.btnRegistrar.setOnClickListener(v -> registrarUsuario());
     }
 
@@ -82,6 +77,6 @@ public class RegistroFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null; // Evita memory leaks
+        binding = null;
     }
 }
