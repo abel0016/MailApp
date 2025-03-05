@@ -29,8 +29,8 @@ public class WelcomeFragment extends Fragment {
 
         navController = Navigation.findNavController(view);
 
-        binding.btnLogin.setOnClickListener(v -> navController.navigate(R.id.action_welcomeFragment_to_loginFragment));
-        binding.btnRegister.setOnClickListener(v -> navController.navigate(R.id.action_welcomeFragment_to_registerFragment));
+        binding.btnLogin.setOnClickListener(v -> navController.navigate(R.id.action_welcomeFragment_to_recibidosFragment));
+        binding.btnRegister.setOnClickListener(v -> navController.navigate(R.id.action_welcomeFragment_to_loginFragment));
     }
 
     @Override

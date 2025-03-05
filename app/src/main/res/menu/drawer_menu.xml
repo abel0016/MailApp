@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_recibidos"
+        android:title="Recibidos" />
+    <item
+        android:id="@+id/nav_enviados"
+        android:title="Enviados" />
+    <item
+        android:id="@+id/nav_borradores"
+        android:title="Borradores" />
+    <item
+        android:id="@+id/nav_busqueda"
+        android:title="Búsqueda" />
+    <item
+        android:id="@+id/nav_settings"
+        android:title="Configuración" />
+    <item
+        android:id="@+id/nav_logout"
+        android:title="Cerrar Sesión" />
+</menu>

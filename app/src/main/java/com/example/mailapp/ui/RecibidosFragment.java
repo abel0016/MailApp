@@ -1,61 +1,51 @@
 package com.example.mailapp.ui;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.mailapp.R;
-//Fragment que se encargará de manejar la bandeja de entrada del correo electrónico
+import com.example.mailapp.models.Correo;
+import com.example.mailapp.databinding.FragmentRecibidosBinding;
+import java.util.ArrayList;
+import java.util.List;
+
 public class RecibidosFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private FragmentRecibidosBinding binding;
+    private CorreoAdapter adapter;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public RecibidosFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment RecibidosFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static RecibidosFragment newInstance(String param1, String param2) {
-        RecibidosFragment fragment = new RecibidosFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = FragmentRecibidosBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Configurar RecyclerView con View Binding
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        // Datos temporales (hardcoded) para pruebas
+        List<Correo> correos = new ArrayList<>();
+        correos.add(new Correo("1", "Reunión mañana", "juan@example.com", "2025-03-05"));
+        correos.add(new Correo("2", "Proyecto final", "maria@example.com", "2025-03-04"));
+        correos.add(new Correo("3", "Recordatorio", "pedro@example.com", "2025-03-03"));
+
+        adapter = new CorreoAdapter(correos);
+        binding.recyclerView.setAdapter(adapter);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_recibidos, container, false);
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }
