@@ -1,61 +1,95 @@
 package com.example.mailapp.ui;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.mailapp.R;
-//Fragment que se encargará de mostrar los correos enviados
+import com.example.mailapp.databinding.FragmentEnviadosBinding;
+import com.example.mailapp.models.Correo;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.ArrayList;
+
 public class EnviadosFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = "EnviadosFragment";
+    private FragmentEnviadosBinding binding;
+    private CorreoAdapter adapter;
+    private FirebaseAuth mAuth;
+    private NavController navController;
+    private CorreoViewModel viewModel;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public EnviadosFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment EnviadosFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static EnviadosFragment newInstance(String param1, String param2) {
-        EnviadosFragment fragment = new EnviadosFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        binding = FragmentEnviadosBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        mAuth = FirebaseAuth.getInstance();
+        navController = Navigation.findNavController(view);
+        viewModel = new ViewModelProvider(this).get(CorreoViewModel.class);
+
+        adapter = new CorreoAdapter(new ArrayList<>(), correo -> {
+            Log.d(TAG, "Correo seleccionado: " + correo.getAsunto());
+        });
+
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding.recyclerView.setAdapter(adapter);
+
+        binding.btnNuevoCorreo.setOnClickListener(v -> {
+            navController.navigate(R.id.action_enviadosFragment_to_crearCorreoFragment);
+        });
+
+        viewModel.getCorreosEnviadosLiveData().observe(getViewLifecycleOwner(), correos -> {
+            if (correos != null) {
+                if (correos.isEmpty()) {
+                    binding.tvMensaje.setText("No tienes correos enviados");
+                    binding.tvMensaje.setVisibility(View.VISIBLE);
+                } else {
+                    binding.tvMensaje.setVisibility(View.GONE);
+                    adapter.actualizarLista(correos);
+                }
+            }
+        });
+
+        // Recargar correos al volver al fragmento
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (destination.getId() == R.id.enviadosFragment) {
+                cargarCorreosEnviados();
+            }
+        });
+
+        cargarCorreosEnviados();
+    }
+
+    private void cargarCorreosEnviados() {
+        if (mAuth.getCurrentUser() == null) {
+            Log.e(TAG, "Usuario no autenticado");
+            binding.tvMensaje.setText("Usuario no autenticado");
+            return;
         }
+
+        String userId = mAuth.getCurrentUser().getUid();
+        viewModel.cargarCorreosEnviados(userId);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_enviados, container, false);
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }

@@ -53,21 +53,89 @@
         <action
             android:id="@+id/action_recibidosFragment_to_busquedaFragment"
             app:destination="@id/busquedaFragment" />
+        <action
+            android:id="@+id/action_recibidosFragment_to_crearCorreoFragment"
+            app:destination="@id/crearCorreoFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/enviadosFragment"
         android:name="com.example.mailapp.ui.EnviadosFragment"
-        android:label="EnviadosFragment" />
+        android:label="EnviadosFragment" >
+        <action
+            android:id="@+id/action_enviadosFragment_to_recibidosFragment"
+            app:destination="@id/recibidosFragment" />
+        <action
+            android:id="@+id/action_enviadosFragment_to_borradorFragment"
+            app:destination="@id/borradorFragment" />
+        <action
+            android:id="@+id/action_enviadosFragment_to_busquedaFragment"
+            app:destination="@id/busquedaFragment" />
+        <action
+            android:id="@+id/action_enviadosFragment_to_crearCorreoFragment"
+            app:destination="@id/crearCorreoFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/borradorFragment"
         android:name="com.example.mailapp.ui.BorradorFragment"
-        android:label="BorradorFragment" />
+        android:label="BorradorFragment" >
+        <action
+            android:id="@+id/action_borradorFragment_to_recibidosFragment"
+            app:destination="@id/recibidosFragment" />
+        <action
+            android:id="@+id/action_borradorFragment_to_enviadosFragment"
+            app:destination="@id/enviadosFragment" />
+        <action
+            android:id="@+id/action_borradorFragment_to_busquedaFragment"
+            app:destination="@id/busquedaFragment" />
+        <action
+            android:id="@+id/action_borradorFragment_to_crearCorreoFragment"
+            app:destination="@id/crearCorreoFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/busquedaFragment"
         android:name="com.example.mailapp.ui.BusquedaFragment"
-        android:label="BusquedaFragment" />
+        android:label="BusquedaFragment" >
+        <action
+            android:id="@+id/action_busquedaFragment_to_recibidosFragment"
+            app:destination="@id/recibidosFragment" />
+        <action
+            android:id="@+id/action_busquedaFragment_to_enviadosFragment"
+            app:destination="@id/enviadosFragment" />
+        <action
+            android:id="@+id/action_busquedaFragment_to_borradorFragment"
+            app:destination="@id/borradorFragment" />
+        <action
+            android:id="@+id/action_busquedaFragment_to_crearCorreoFragment"
+            app:destination="@id/crearCorreoFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/crearCorreoFragment"
+        android:name="com.example.mailapp.ui.CrearCorreoFragment"
+        android:label="CrearCorreoFragment" >
+        <action
+            android:id="@+id/action_crearCorreoFragment_to_recibidosFragment"
+            app:destination="@id/recibidosFragment"
+            app:popUpTo="@id/recibidosFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_crearCorreoFragment_to_enviadosFragment"
+            app:destination="@id/enviadosFragment"
+            app:popUpTo="@id/enviadosFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_crearCorreoFragment_to_borradorFragment"
+            app:destination="@id/borradorFragment"
+            app:popUpTo="@id/borradorFragment"
+            app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_crearCorreoFragment_to_busquedaFragment"
+            app:destination="@id/busquedaFragment"
+            app:popUpTo="@id/busquedaFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 </navigation>

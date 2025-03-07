@@ -3,19 +3,23 @@ package com.example.mailapp.models;
 public class Correo {
     private String id;
     private String asunto;
-    private String remitente;
-    private String fecha;
+    private String remitenteId; // Cambiado de remitente a remitenteId
+    private String fechaEnvio;  // Cambiado de fecha a fechaEnvio
     private String mensaje;
+    private String destinatarioEmail; // Nuevo campo
+    private String estado;      // Nuevo campo
 
     public Correo() {
     }
 
-    public Correo(String id, String asunto, String remitente,String mensaje, String fecha) {
+    public Correo(String id, String asunto, String remitenteId, String mensaje, String fechaEnvio, String destinatarioEmail, String estado) {
         this.id = id;
         this.asunto = asunto;
-        this.remitente = remitente;
-        this.fecha = fecha;
-        this.mensaje=mensaje;
+        this.remitenteId = remitenteId;
+        this.fechaEnvio = fechaEnvio;
+        this.mensaje = mensaje;
+        this.destinatarioEmail = destinatarioEmail;
+        this.estado = estado;
     }
 
     // Getters y Setters
@@ -23,18 +27,16 @@ public class Correo {
     public void setId(String id) { this.id = id; }
     public String getAsunto() { return asunto; }
     public void setAsunto(String asunto) { this.asunto = asunto; }
-    public String getRemitente() { return remitente; }
-    public void setRemitente(String remitente) { this.remitente = remitente; }
-    public String getFecha() { return fecha; }
-    public void setFecha(String fecha) { this.fecha = fecha; }
-    public String getContent() { return mensaje; }
-    public void setContent(String content) { this.mensaje = content; }
+    public String getRemitenteId() { return remitenteId; }
+    public void setRemitenteId(String remitenteId) { this.remitenteId = remitenteId; }
+    public String getFechaEnvio() { return fechaEnvio; }
+    public void setFechaEnvio(String fechaEnvio) { this.fechaEnvio = fechaEnvio; }
+    public String getMensaje() { return mensaje; }
+    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+    public String getDestinatarioEmail() { return destinatarioEmail; }
+    public void setDestinatarioEmail(String destinatarioEmail) { this.destinatarioEmail = destinatarioEmail; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
 
-    public String getMensaje() {
-        return mensaje;
-    }
-
-    public void setMensaje(String mensaje) {
-        this.mensaje = mensaje;
-    }
+    // Eliminar getContent() y setContent() ya que son redundantes con getMensaje() y setMensaje()
 }

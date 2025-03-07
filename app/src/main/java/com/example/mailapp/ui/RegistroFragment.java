@@ -18,6 +18,7 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,7 +30,6 @@ import androidx.navigation.Navigation;
 
 import com.example.mailapp.R;
 import com.example.mailapp.databinding.FragmentRegistroBinding;
-import com.example.mailapp.models.Usuario;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
@@ -37,7 +37,6 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
@@ -50,7 +49,7 @@ import okhttp3.*;
 public class RegistroFragment extends Fragment {
 
     private static final String TAG = "RegistroFragment";
-    private static final String SUPABASE_URL = "https://opvcrulzhtnetrajjctt.supabase.co/storage/v1/object";
+    private static final String SUPABASE_URL = "https://opvcrulzhtnetrajjctt.supabase.co";
     private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdmNydWx6aHRuZXRyYWpqY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEzMTA3OTQsImV4cCI6MjA1Njg4Njc5NH0.8B_eRnrWBf3YZP5lFtZunreQ5949SzD4NAZNNTDQhG4";
     private static final String BUCKET_NAME = "profile-photos";
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 100;
@@ -141,7 +140,8 @@ public class RegistroFragment extends Fragment {
                 requireContext(),
                 (view, year, month, dayOfMonth) -> {
                     if (esFechaValida(year)) {
-                        binding.etFechaNacimiento.setText(dayOfMonth + "/" + (month + 1) + "/" + year);
+                        String fecha = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth);
+                        binding.etFechaNacimiento.setText(fecha);
                     } else {
                         binding.etFechaNacimiento.setText("");
                         binding.layoutFechaNacimiento.setError("Fecha inválida (entre 12 y 100 años)");
@@ -176,13 +176,22 @@ public class RegistroFragment extends Fragment {
             if (task.isSuccessful()) {
                 String userId = mAuth.getCurrentUser().getUid();
                 if (fotoUri != null) {
-                    subirFotoASupabase(fotoUri, userId, (photoUrl) -> guardarUsuarioEnSupabase(userId, nombre, fechaNacimiento, email, photoUrl));
+                    subirFotoASupabase(fotoUri, userId, photoUrl -> {
+                        if (photoUrl != null) {
+                            guardarUsuarioEnSupabase(userId, nombre, fechaNacimiento, email, photoUrl);
+                        } else {
+                            Toast.makeText(requireContext(), "Error al subir la foto", Toast.LENGTH_SHORT).show();
+                            guardarUsuarioEnSupabase(userId, nombre, fechaNacimiento, email, "");
+                        }
+                    });
                 } else {
                     guardarUsuarioEnSupabase(userId, nombre, fechaNacimiento, email, "");
                 }
             } else {
                 if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                     binding.layoutEmail.setError("Correo ya registrado");
+                } else {
+                    Toast.makeText(requireContext(), "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -197,7 +206,8 @@ public class RegistroFragment extends Fragment {
             jsonObject.put("nombre", nombre);
             jsonObject.put("fecha_nacimiento", fechaNacimiento);
             jsonObject.put("email", email);
-            jsonObject.put("foto_perfil", photoUrl);
+            jsonObject.put("foto_url", photoUrl);
+            Log.d(TAG, "JSON enviado: " + jsonObject.toString());
         } catch (JSONException e) {
             Log.e(TAG, "Error creando JSON", e);
             return;
@@ -205,7 +215,7 @@ public class RegistroFragment extends Fragment {
 
         RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.get("application/json"));
         Request request = new Request.Builder()
-                .url(SUPABASE_URL + "/usuarios") // URL de la tabla usuarios
+                .url(SUPABASE_URL + "/rest/v1/usuarios")
                 .header("apikey", SUPABASE_KEY)
                 .header("Authorization", "Bearer " + SUPABASE_KEY)
                 .header("Content-Type", "application/json")
@@ -216,57 +226,66 @@ public class RegistroFragment extends Fragment {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 Log.e(TAG, "Error al guardar usuario en Supabase: " + e.getMessage());
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Error al guardar usuario", Toast.LENGTH_SHORT).show());
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                requireActivity().runOnUiThread(() -> navController.navigate(R.id.action_registroFragment_to_loginFragment));
+                String responseBody = response.body() != null ? response.body().string() : "No body";
+                Log.d(TAG, "Respuesta de Supabase: " + response.code() + " - " + responseBody);
+                if (response.isSuccessful()) {
+                    requireActivity().runOnUiThread(() ->
+                            navController.navigate(R.id.action_registroFragment_to_loginFragment));
+                } else {
+                    Log.e(TAG, "Error en respuesta: " + response.code() + " - " + responseBody);
+                    requireActivity().runOnUiThread(() ->
+                            Toast.makeText(requireContext(), "Error al guardar usuario: " + responseBody, Toast.LENGTH_LONG).show());
+                }
             }
         });
     }
+
     private void subirFotoASupabase(Uri uri, String userId, UploadCallback callback) {
         executorService.execute(() -> {
-            if (uri == null) {
-                Log.e(TAG, "Error: fotoUri es nulo.");
-                return;
-            }
-
             OkHttpClient client = new OkHttpClient();
-
-            // Generar un nombre único para la imagen
             String fileName = userId + "_" + UUID.randomUUID().toString() + ".jpg";
-            String endpoint = "https://opvcrulzhtnetrajjctt.supabase.co/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
-
-            Log.d(TAG, "Subiendo imagen a: " + endpoint);
+            String endpoint = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
 
             try {
                 InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+                if (inputStream == null) {
+                    Log.e(TAG, "Error: No se pudo abrir el InputStream de la imagen");
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(null));
+                    return;
+                }
+
                 byte[] fileBytes = toByteArray(inputStream);
+                inputStream.close();
+                Log.d(TAG, "Tamaño de la imagen: " + fileBytes.length + " bytes");
 
                 RequestBody fileBody = RequestBody.create(fileBytes, MediaType.parse("image/jpeg"));
-
                 Request request = new Request.Builder()
                         .url(endpoint)
-                        .header("Content-Type", "image/jpeg")
                         .header("apikey", SUPABASE_KEY)
                         .header("Authorization", "Bearer " + SUPABASE_KEY)
+                        .header("Content-Type", "image/jpeg")
                         .put(fileBody)
                         .build();
 
                 Response response = client.newCall(request).execute();
+                String responseBody = response.body() != null ? response.body().string() : "No body";
                 if (response.isSuccessful()) {
-                    Log.d(TAG, "Imagen subida con éxito");
-
-                    // URL pública de la imagen
-                    String publicUrl = "https://opvcrulzhtnetrajjctt.supabase.co/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
-                    Log.d(TAG, "URL pública de la imagen: " + publicUrl);
-
+                    String publicUrl = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
+                    Log.d(TAG, "Imagen subida con éxito: " + publicUrl);
                     new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(publicUrl));
                 } else {
-                    Log.e(TAG, "Error al subir imagen: " + response.code() + " - " + response.message());
+                    Log.e(TAG, "Error al subir imagen: " + response.code() + " - " + responseBody);
+                    new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(null));
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "Error en subirFotoASupabase: " + e.getMessage(), e);
+            } catch (IOException e) {
+                Log.e(TAG, "Excepción al subir la imagen: " + e.getMessage(), e);
+                new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(null));
             }
         });
     }
@@ -275,5 +294,9 @@ public class RegistroFragment extends Fragment {
         void onUploadComplete(String photoUrl);
     }
 
-
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }
