@@ -5,17 +5,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.mailapp.R;
-import com.example.mailapp.models.Correo;
 import com.example.mailapp.databinding.ItemCorreoBinding;
+import com.example.mailapp.models.Correo;
 import java.util.List;
 
 public class CorreoAdapter extends RecyclerView.Adapter<CorreoAdapter.ViewHolder> {
 
-    private List<Correo> correos;
+    public interface OnCorreoClickListener {
+        void onCorreoClick(Correo correo);
+    }
 
-    public CorreoAdapter(List<Correo> correos) {
+    private List<Correo> correos;
+    private OnCorreoClickListener listener;
+
+    public CorreoAdapter(List<Correo> correos, OnCorreoClickListener listener) {
         this.correos = correos;
+        this.listener = listener;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -25,12 +30,19 @@ public class CorreoAdapter extends RecyclerView.Adapter<CorreoAdapter.ViewHolder
             super(binding.getRoot());
             this.binding = binding;
         }
+
+        public void bind(Correo correo, OnCorreoClickListener listener) {
+            binding.asunto.setText(correo.getAsunto());
+            binding.remitente.setText(correo.getRemitente());
+            binding.fecha.setText(correo.getFecha());
+
+            itemView.setOnClickListener(v -> listener.onCorreoClick(correo));
+        }
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // Inflar el layout usando View Binding
         ItemCorreoBinding binding = ItemCorreoBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new ViewHolder(binding);
     }
@@ -38,13 +50,16 @@ public class CorreoAdapter extends RecyclerView.Adapter<CorreoAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Correo correo = correos.get(position);
-        holder.binding.asunto.setText(correo.getAsunto());
-        holder.binding.remitente.setText(correo.getRemitente());
-        holder.binding.fecha.setText(correo.getFecha());
+        holder.bind(correo, listener);
     }
 
     @Override
     public int getItemCount() {
         return correos.size();
+    }
+
+    public void actualizarLista(List<Correo> nuevaLista) {
+        this.correos = nuevaLista;
+        notifyDataSetChanged();
     }
 }

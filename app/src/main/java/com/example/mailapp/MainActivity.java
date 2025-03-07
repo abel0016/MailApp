@@ -1,6 +1,7 @@
 package com.example.mailapp;
 
 import android.os.Bundle;
+import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -16,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration appBarConfiguration;
     private DrawerLayout drawerLayout;
     private ActivityMainBinding binding;
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,22 +25,39 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        if (findViewById(R.id.nav_host_fragment) == null) {
+            Log.e("MainActivity", "NavHostFragment no encontrado en el layout!");
+            return;
+        }
+
+        // Configurar el Toolbar como ActionBar
+        setSupportActionBar(binding.toolbar);
+
         NavigationView navigationView = binding.navView;
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         drawerLayout = binding.drawerLayout;
 
-        // Configurar AppBar y Drawer
-        appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_recibidos, R.id.nav_enviados, R.id.nav_borradores, R.id.nav_busqueda, R.id.nav_settings)
-                .setOpenableLayout(drawerLayout)
-                .build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(navigationView, navController);
+        binding.getRoot().post(() -> {
+            try {
+                navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+                Log.d("MainActivity", "NavController inicializado correctamente: " + navController);
+
+                appBarConfiguration = new AppBarConfiguration.Builder(
+                        R.id.recibidosFragment, R.id.enviadosFragment, R.id.borradorFragment, R.id.busquedaFragment)
+                        .setOpenableLayout(drawerLayout)
+                        .build();
+                NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+                NavigationUI.setupWithNavController(navigationView, navController);
+            } catch (IllegalStateException e) {
+                Log.e("MainActivity", "Error al obtener NavController incluso después de retrasar: " + e.getMessage());
+            }
+        });
     }
 
     @Override
     public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        if (navController == null) {
+            return super.onSupportNavigateUp();
+        }
         return NavigationUI.navigateUp(navController, appBarConfiguration) || super.onSupportNavigateUp();
     }
 

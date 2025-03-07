@@ -2,15 +2,15 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/loginFragment">
+    app:startDestination="@id/welcomeFragment">
 
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.mailapp.ui.LoginFragment"
         android:label="LoginFragment" >
         <action
-            android:id="@+id/action_loginFragment_to_registroFragment"
-            app:destination="@id/registroFragment" />
+            android:id="@+id/action_loginFragment_to_recibidosFragment"
+            app:destination="@id/recibidosFragment" />
         <action
             android:id="@+id/action_loginFragment_to_welcomeFragment"
             app:destination="@id/welcomeFragment" />
@@ -33,8 +33,8 @@
         android:name="com.example.mailapp.ui.WelcomeFragment"
         android:label="WelcomeFragment" >
         <action
-            android:id="@+id/action_welcomeFragment_to_recibidosFragment"
-            app:destination="@id/recibidosFragment" />
+            android:id="@+id/action_welcomeFragment_to_registroFragment"
+            app:destination="@id/registroFragment" />
         <action
             android:id="@+id/action_welcomeFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
@@ -69,4 +69,5 @@
         android:id="@+id/busquedaFragment"
         android:name="com.example.mailapp.ui.BusquedaFragment"
         android:label="BusquedaFragment" />
+
 </navigation>

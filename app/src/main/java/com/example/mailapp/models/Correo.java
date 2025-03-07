@@ -10,11 +10,12 @@ public class Correo {
     public Correo() {
     }
 
-    public Correo(String id, String asunto, String remitente, String fecha) {
+    public Correo(String id, String asunto, String remitente,String mensaje, String fecha) {
         this.id = id;
         this.asunto = asunto;
         this.remitente = remitente;
         this.fecha = fecha;
+        this.mensaje=mensaje;
     }
 
     // Getters y Setters
@@ -28,4 +29,12 @@ public class Correo {
     public void setFecha(String fecha) { this.fecha = fecha; }
     public String getContent() { return mensaje; }
     public void setContent(String content) { this.mensaje = content; }
+
+    public String getMensaje() {
+        return mensaje;
+    }
+
+    public void setMensaje(String mensaje) {
+        this.mensaje = mensaje;
+    }
 }

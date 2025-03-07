@@ -12,130 +12,162 @@
         android:id="@+id/tvRegisterTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text="Registro"
+        android:textColor="@color/black"
         android:textSize="32sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="60dp"/>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/layoutNombre"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Nombre y Apellidos"
-        app:boxStrokeWidth="2dp"
-        app:endIconMode="clear_text"
-        app:boxStrokeColor="@color/primary"
-        android:textColorHint="@color/light_gray"
-        app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etNombre"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"/>
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/layoutFechaNacimiento"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Fecha de Nacimiento"
-        app:boxStrokeColor="@color/primary"
-        app:boxStrokeWidth="2dp"
-        android:textColorHint="@color/light_gray"
-        app:layout_constraintTop_toBottomOf="@id/layoutNombre"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etFechaNacimiento"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="false"
-            android:clickable="true"
-            android:inputType="date"
-            android:textColor="@color/white"/>
-    </com.google.android.material.textfield.TextInputLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/layoutEmail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
         android:hint="Correo Electrónico"
+        android:textColorHint="@color/light_gray"
         app:boxStrokeColor="@color/primary"
         app:boxStrokeWidth="2dp"
         app:endIconMode="clear_text"
-        android:textColorHint="@color/light_gray"
-        app:layout_constraintTop_toBottomOf="@id/layoutFechaNacimiento"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutFechaNacimiento">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/layoutPassword"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Contraseña"
-        app:boxStrokeColor="@color/primary"
-        app:boxStrokeWidth="2dp"
-        app:endIconMode="password_toggle"
-        android:textColorHint="@color/light_gray"
-        app:layout_constraintTop_toBottomOf="@id/layoutEmail"
-        app:layout_constraintStart_toStartOf="parent"
+    <ImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="83dp"
+        android:layout_height="69dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/ic_profile_placeholder"
+        android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:textColor="@color/white"/>
-    </com.google.android.material.textfield.TextInputLayout>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnSeleccionarFoto" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/layoutConfirmPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:hint="Confirmar Contraseña"
+        android:textColorHint="@color/light_gray"
         app:boxStrokeColor="@color/primary"
         app:boxStrokeWidth="2dp"
         app:endIconMode="password_toggle"
-        android:textColorHint="@color/light_gray"
-        app:layout_constraintTop_toBottomOf="@id/layoutPassword"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutPassword">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etConfirmPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSeleccionarFoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/primary"
+        android:text="Seleccionar Foto"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutConfirmPassword" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutPassword"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Contraseña"
+        android:textColorHint="@color/light_gray"
+        app:boxStrokeColor="@color/primary"
+        app:boxStrokeWidth="2dp"
+        app:endIconMode="password_toggle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutEmail">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:textColor="@color/white" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutFechaNacimiento"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:hint="Fecha de Nacimiento"
+        android:textColorHint="@color/light_gray"
+        app:boxStrokeColor="@color/primary"
+        app:boxStrokeWidth="2dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutNombre">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etFechaNacimiento"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="false"
+            android:inputType="date"
+            android:textColor="@color/white" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutNombre"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:hint="Nombre y Apellidos"
+        android:textColorHint="@color/light_gray"
+        app:boxStrokeColor="@color/primary"
+        app:boxStrokeWidth="2dp"
+        app:endIconMode="clear_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvRegisterTitle">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Botón para seleccionar foto -->
+
+    <!-- ImageView para mostrar la foto seleccionada -->
 
     <Button
         android:id="@+id/btnRegistrar"
         android:layout_width="190dp"
         android:layout_height="53dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="4dp"
         android:backgroundTint="@color/primary"
         android:minHeight="48dp"
         android:padding="10dp"
@@ -143,8 +175,9 @@
         android:textColor="@color/white"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutConfirmPassword" />
+        app:layout_constraintTop_toBottomOf="@id/imgPerfil" />
 
     <Button
         android:id="@+id/btnBack"

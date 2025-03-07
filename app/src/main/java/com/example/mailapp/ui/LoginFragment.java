@@ -60,7 +60,7 @@ public class LoginFragment extends Fragment {
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 //Si el login es correcto naveamos al RecibidosFragment que actúa como home
-                navController.navigate(R.id.action_loginFragment_to_welcomeFragment);
+                navController.navigate(R.id.action_loginFragment_to_recibidosFragment);
             }else{
                 try {
                     throw task.getException();
