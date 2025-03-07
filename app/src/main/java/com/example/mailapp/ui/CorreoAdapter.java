@@ -33,7 +33,7 @@ public class CorreoAdapter extends RecyclerView.Adapter<CorreoAdapter.ViewHolder
 
         public void bind(Correo correo, OnCorreoClickListener listener) {
             binding.asunto.setText(correo.getAsunto());
-            binding.remitente.setText(correo.getRemitenteId()); // Temporalmente mostramos el ID, luego lo cambiaremos
+            binding.remitente.setText(correo.getRemitenteId());
             binding.fecha.setText(correo.getFechaEnvio());
 
             itemView.setOnClickListener(v -> listener.onCorreoClick(correo));

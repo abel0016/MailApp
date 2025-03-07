@@ -37,6 +37,4 @@ public class Correo {
     public void setDestinatarioEmail(String destinatarioEmail) { this.destinatarioEmail = destinatarioEmail; }
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
-
-    // Eliminar getContent() y setContent() ya que son redundantes con getMensaje() y setMensaje()
 }

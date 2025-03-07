@@ -32,13 +32,9 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        // Inicializar Firebase y NavController
         mAuth = FirebaseAuth.getInstance();
         navController = Navigation.findNavController(view);
-        // Botón de volver
         binding.btnBack.setOnClickListener(v -> navController.navigate(R.id.action_loginFragment_to_welcomeFragment));
-        // Botón de inicio de sesión
         binding.btnLoginUser.setOnClickListener(v -> loginUsuario());
     }
 
@@ -59,7 +55,6 @@ public class LoginFragment extends Fragment {
         if (!valido) return;
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                //Si el login es correcto naveamos al RecibidosFragment que actúa como home
                 navController.navigate(R.id.action_loginFragment_to_recibidosFragment);
             }else{
                 try {

@@ -66,7 +66,7 @@ public class EnviadosFragment extends Fragment {
             }
         });
 
-        // Recargar correos al volver al fragmento
+        //Recargar correos al volver al fragmento
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             if (destination.getId() == R.id.enviadosFragment) {
                 cargarCorreosEnviados();

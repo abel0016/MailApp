@@ -45,18 +45,13 @@ public class RecibidosFragment extends Fragment {
 
         adapter = new CorreoAdapter(new ArrayList<>(), correo -> {
             Log.d(TAG, "Correo seleccionado: " + correo.getAsunto());
-            // Aquí podrías navegar a un detalle del correo si lo implementas
         });
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.recyclerView.setAdapter(adapter);
-
-        // Botón para crear nuevo correo
         binding.fabNuevoCorreo.setOnClickListener(v -> {
             navController.navigate(R.id.action_recibidosFragment_to_crearCorreoFragment);
         });
-
-        // Observar cambios en la lista de correos
         viewModel.getCorreosLiveData().observe(getViewLifecycleOwner(), correos -> {
             if (correos != null) {
                 if (correos.isEmpty()) {

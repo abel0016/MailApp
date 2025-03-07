@@ -68,9 +68,8 @@ public class CrearCorreoFragment extends Fragment {
             String idEnviado = UUID.randomUUID().toString();
             String idRecibido = UUID.randomUUID().toString();
 
-            // Correo para el remitente (enviado)
             Correo correoEnviado = new Correo(idEnviado, asunto, remitenteId, mensaje, fechaEnvio, destinatarioEmail, "enviado");
-            // Correo para el destinatario (recibido)
+
             Correo correoRecibido = new Correo(idRecibido, asunto, remitenteId, mensaje, fechaEnvio, destinatarioEmail, "recibido");
 
             guardarCorreoEnSupabase(correoEnviado, user, () -> {
@@ -101,7 +100,7 @@ public class CrearCorreoFragment extends Fragment {
         }
 
         user.getIdToken(true).addOnSuccessListener(idToken -> {
-            Log.d(TAG, "Token JWT obtenido: " + idToken.getToken().substring(0, 20) + "..."); // Depuración parcial del token
+            Log.d(TAG, "Token JWT obtenido: " + idToken.getToken().substring(0, 20) + "...");
             RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.get("application/json"));
             Request request = new Request.Builder()
                     .url(SUPABASE_URL)
