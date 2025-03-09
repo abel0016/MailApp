@@ -48,14 +48,21 @@
             android:id="@+id/action_recibidosFragment_to_enviadosFragment"
             app:destination="@id/enviadosFragment" />
         <action
-            android:id="@+id/action_recibidosFragment_to_borradorFragment"
-            app:destination="@id/borradorFragment" />
-        <action
             android:id="@+id/action_recibidosFragment_to_busquedaFragment"
             app:destination="@id/busquedaFragment" />
         <action
             android:id="@+id/action_recibidosFragment_to_crearCorreoFragment"
             app:destination="@id/crearCorreoFragment" />
+        <action
+            android:id="@+id/action_recibidosFragment_to_detalleCorreoFragment"
+            app:destination="@id/detalleCorreoFragment">
+            <argument
+                android:name="correo_id"
+                app:argType="string" />
+        </action>
+        <action
+            android:id="@+id/action_recibidosFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
@@ -66,32 +73,21 @@
             android:id="@+id/action_enviadosFragment_to_recibidosFragment"
             app:destination="@id/recibidosFragment" />
         <action
-            android:id="@+id/action_enviadosFragment_to_borradorFragment"
-            app:destination="@id/borradorFragment" />
-        <action
             android:id="@+id/action_enviadosFragment_to_busquedaFragment"
             app:destination="@id/busquedaFragment" />
         <action
             android:id="@+id/action_enviadosFragment_to_crearCorreoFragment"
             app:destination="@id/crearCorreoFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/borradorFragment"
-        android:name="com.example.mailapp.ui.BorradorFragment"
-        android:label="BorradorFragment" >
         <action
-            android:id="@+id/action_borradorFragment_to_recibidosFragment"
-            app:destination="@id/recibidosFragment" />
+            android:id="@+id/action_enviadosFragment_to_detalleCorreoFragment"
+            app:destination="@id/detalleCorreoFragment">
+            <argument
+                android:name="correo_id"
+                app:argType="string" />
+        </action>
         <action
-            android:id="@+id/action_borradorFragment_to_enviadosFragment"
-            app:destination="@id/enviadosFragment" />
-        <action
-            android:id="@+id/action_borradorFragment_to_busquedaFragment"
-            app:destination="@id/busquedaFragment" />
-        <action
-            android:id="@+id/action_borradorFragment_to_crearCorreoFragment"
-            app:destination="@id/crearCorreoFragment" />
+            android:id="@+id/action_enviadosFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
 
     <fragment
@@ -105,11 +101,14 @@
             android:id="@+id/action_busquedaFragment_to_enviadosFragment"
             app:destination="@id/enviadosFragment" />
         <action
-            android:id="@+id/action_busquedaFragment_to_borradorFragment"
-            app:destination="@id/borradorFragment" />
-        <action
             android:id="@+id/action_busquedaFragment_to_crearCorreoFragment"
             app:destination="@id/crearCorreoFragment" />
+        <action
+            android:id="@+id/action_busquedaFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
+        <action
+            android:id="@+id/action_busquedaFragment_to_detalleCorreoFragment"
+            app:destination="@+id/detalleCorreoFragment"/>
     </fragment>
 
     <fragment
@@ -127,15 +126,32 @@
             app:popUpTo="@id/enviadosFragment"
             app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_crearCorreoFragment_to_borradorFragment"
-            app:destination="@id/borradorFragment"
-            app:popUpTo="@id/borradorFragment"
-            app:popUpToInclusive="true" />
-        <action
             android:id="@+id/action_crearCorreoFragment_to_busquedaFragment"
             app:destination="@id/busquedaFragment"
             app:popUpTo="@id/busquedaFragment"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_crearCorreoFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
+
+    <fragment
+        android:id="@+id/detalleCorreoFragment"
+        android:name="com.example.mailapp.ui.DetalleCorreoFragment"
+        android:label="DetalleCorreoFragment">
+        <argument
+            android:name="correo_id"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.mailapp.ui.SettingsFragment"
+        android:label="SettingsFragment" />
+    <action
+        android:id="@+id/action_global_loginFragment"
+        app:destination="@id/loginFragment"
+        app:popUpTo="@id/welcomeFragment"
+        app:popUpToInclusive="true" />
 
 </navigation>

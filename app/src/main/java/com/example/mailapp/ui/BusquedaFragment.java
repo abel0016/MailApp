@@ -1,61 +1,146 @@
 package com.example.mailapp.ui;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.SearchView;
 import com.example.mailapp.R;
-//Fragment que se encargará de manejar la búsqueda por palabras clave de los correos
+import com.example.mailapp.databinding.FragmentBusquedaBinding;
+import com.example.mailapp.model.Correo;
+import com.google.firebase.auth.FirebaseAuth;
+import java.util.ArrayList;
+import java.util.List;
+
 public class BusquedaFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private FragmentBusquedaBinding binding;
+    private CorreoAdapter adapter;
+    private CorreoViewModel viewModel;
+    private NavController navController;
+    private List<Correo> allCorreos;
+    private String userId;
+    private String userEmail;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public BusquedaFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment BusquedaFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static BusquedaFragment newInstance(String param1, String param2) {
-        BusquedaFragment fragment = new BusquedaFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        binding = FragmentBusquedaBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        navController = Navigation.findNavController(view);
+        allCorreos = new ArrayList<>();
+
+        // Inicializar Firebase Auth y obtener userId y userEmail
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            binding.tvMensaje.setVisibility(View.VISIBLE);
+            binding.tvMensaje.setText(R.string.no_auth_error);
+            return;
+        }
+        userId = auth.getCurrentUser().getUid();
+        userEmail = auth.getCurrentUser().getEmail();
+
+        // Configurar RecyclerView y Adapter
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new CorreoAdapter(correo -> {
+            Bundle args = new Bundle();
+            args.putString("correoId", correo.getId());
+            navController.navigate(R.id.action_busquedaFragment_to_detalleCorreoFragment, args);
+        }, true); // Pasamos true porque queremos mostrar el remitente (como en Recibidos)
+        binding.recyclerView.setAdapter(adapter);
+
+        // Inicializar ViewModel y cargar correos
+        viewModel = new ViewModelProvider(this).get(CorreoViewModel.class);
+        loadAllCorreos();
+
+        // Configurar SearchView para filtrar
+        binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterCorreos(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterCorreos(newText);
+                return true;
+            }
+        });
+    }
+
+    private void loadAllCorreos() {
+        // Cargar correos recibidos
+        viewModel.getCorreosLiveData(userEmail).observe(getViewLifecycleOwner(), recibidos -> {
+            if (recibidos != null) {
+                allCorreos.addAll(recibidos);
+                updateList();
+            }
+        });
+
+        // Cargar correos enviados
+        viewModel.getCorreosEnviadosLiveData(userId).observe(getViewLifecycleOwner(), enviados -> {
+            if (enviados != null) {
+                allCorreos.addAll(enviados);
+                updateList();
+            }
+        });
+    }
+
+    private void updateList() {
+        if (binding == null) return;
+
+        if (allCorreos.isEmpty()) {
+            binding.tvMensaje.setVisibility(View.VISIBLE);
+            binding.tvMensaje.setText(R.string.no_correos_message);
+        } else {
+            binding.tvMensaje.setVisibility(View.GONE);
+            adapter.setCorreoList(new ArrayList<>(allCorreos));
         }
     }
 
+    private void filterCorreos(String query) {
+        List<Correo> filteredList = new ArrayList<>();
+        if (query == null || query.trim().isEmpty()) {
+            filteredList.addAll(allCorreos);
+        } else {
+            String filterPattern = query.toLowerCase().trim();
+            for (Correo correo : allCorreos) {
+                if ((correo.getAsunto() != null && correo.getAsunto().toLowerCase().contains(filterPattern)) ||
+                        (correo.getContenido() != null && correo.getContenido().toLowerCase().contains(filterPattern)) ||
+                        (correo.getRemitenteId() != null && correo.getRemitenteId().toLowerCase().contains(filterPattern)) ||
+                        (correo.getDestinatarioEmail() != null && correo.getDestinatarioEmail().toLowerCase().contains(filterPattern))) {
+                    filteredList.add(correo);
+                }
+            }
+        }
+
+        if (filteredList.isEmpty()) {
+            binding.tvMensaje.setVisibility(View.VISIBLE);
+            binding.tvMensaje.setText(R.string.no_results_message);
+        } else {
+            binding.tvMensaje.setVisibility(View.GONE);
+        }
+        adapter.setCorreoList(filteredList);
+    }
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_busqueda, container, false);
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }

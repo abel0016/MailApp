@@ -4,42 +4,34 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp">
-
-    <!-- Campo para el Destinatario -->
     <EditText
         android:id="@+id/etDestinatario"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Destinatario (Email)"
+        android:hint="@string/destinatario_email"
         android:inputType="textEmailAddress"
         android:maxLines="1" />
-
-    <!-- Campo para el Asunto -->
     <EditText
         android:id="@+id/etAsunto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Asunto"
+        android:hint="@string/asunto"
         android:maxLines="1"
         android:layout_marginTop="8dp" />
-
-    <!-- Campo para el Mensaje -->
     <EditText
         android:id="@+id/etMensaje"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:hint="Escribe tu mensaje aquí"
+        android:hint="@string/escribe_tu_mensaje_aqu"
         android:inputType="textMultiLine"
         android:gravity="top"
         android:layout_marginTop="8dp" />
-
-    <!-- Botón para Enviar el Correo -->
     <Button
         android:id="@+id/btnEnviarCorreo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enviar Correo"
+        android:text="@string/enviar_correo"
         android:layout_gravity="end"
         android:layout_marginTop="16dp" />
 

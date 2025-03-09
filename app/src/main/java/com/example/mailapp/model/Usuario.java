@@ -1,4 +1,4 @@
-package com.example.mailapp.models;
+package com.example.mailapp.model;
 
 public class Usuario {
     private String id;

@@ -8,29 +8,25 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
 import com.example.mailapp.R;
 import com.example.mailapp.databinding.FragmentRecibidosBinding;
-import com.example.mailapp.models.Correo;
+import com.example.mailapp.model.Correo;
+import com.example.mailapp.database.CorreoRepository;
 import com.google.firebase.auth.FirebaseAuth;
-
 import java.util.ArrayList;
 
 public class RecibidosFragment extends Fragment {
 
-    private static final String TAG = "RecibidosFragment";
     private FragmentRecibidosBinding binding;
-    private CorreoAdapter adapter;
-    private FirebaseAuth mAuth;
-    private NavController navController;
-    private CorreoViewModel viewModel;
+    private CorreoAdapter correoAdapter;
+    private ArrayList<Correo> correoList;
+    private CorreoRepository correoRepository;
+    private FirebaseAuth auth;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentRecibidosBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -39,43 +35,54 @@ public class RecibidosFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mAuth = FirebaseAuth.getInstance();
-        navController = Navigation.findNavController(view);
-        viewModel = new ViewModelProvider(this).get(CorreoViewModel.class);
-
-        adapter = new CorreoAdapter(new ArrayList<>(), correo -> {
-            Log.d(TAG, "Correo seleccionado: " + correo.getAsunto());
+        correoList = new ArrayList<>();
+        correoAdapter = new CorreoAdapter(correoList, correo -> {
+            Bundle bundle = new Bundle();
+            bundle.putString("correoId", correo.getId());
+            Navigation.findNavController(view).navigate(R.id.action_recibidosFragment_to_detalleCorreoFragment, bundle);
         });
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerView.setAdapter(correoAdapter);
 
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        binding.recyclerView.setAdapter(adapter);
-        binding.fabNuevoCorreo.setOnClickListener(v -> {
-            navController.navigate(R.id.action_recibidosFragment_to_crearCorreoFragment);
-        });
-        viewModel.getCorreosLiveData().observe(getViewLifecycleOwner(), correos -> {
-            if (correos != null) {
-                if (correos.isEmpty()) {
-                    binding.tvMensaje.setText("No tienes correos en la bandeja de entrada");
-                    binding.tvMensaje.setVisibility(View.VISIBLE);
-                } else {
-                    binding.tvMensaje.setVisibility(View.GONE);
-                    adapter.actualizarLista(correos);
-                }
-            }
-        });
+        correoRepository = CorreoRepository.getInstance();
+        auth = FirebaseAuth.getInstance();
+        cargarCorreosRecibidos();
 
-        cargarCorreos();
+        // Añadir OnClickListener al botón de nuevo correo
+        binding.btnNuevoCorreo.setOnClickListener(v -> {
+            Log.d("RecibidosFragment", "Botón Nuevo Correo presionado");
+            Navigation.findNavController(view).navigate(R.id.action_recibidosFragment_to_crearCorreoFragment);
+        });
     }
 
-    private void cargarCorreos() {
-        if (mAuth.getCurrentUser() == null) {
-            Log.e(TAG, "Usuario no autenticado");
-            binding.tvMensaje.setText("Usuario no autenticado");
+    private void cargarCorreosRecibidos() {
+        String emailUsuario = auth.getCurrentUser() != null ? auth.getCurrentUser().getEmail() : null;
+        if (emailUsuario == null) {
+            Log.e("RecibidosFragment", "No hay usuario autenticado");
+            if (binding != null) {
+                binding.tvMensaje.setVisibility(View.VISIBLE);
+                binding.tvMensaje.setText(R.string.no_auth_error);
+            }
             return;
         }
 
-        String emailUsuario = mAuth.getCurrentUser().getEmail();
-        viewModel.cargarCorreos(emailUsuario);
+        Log.d("RecibidosFragment", "Cargando correos para destinatario: " + emailUsuario);
+
+        correoRepository.getCorreosRecibidos(emailUsuario).observe(getViewLifecycleOwner(), correos -> {
+            if (binding == null) return;
+
+            correoList.clear();
+            if (correos != null && !correos.isEmpty()) {
+                correoList.addAll(correos);
+                binding.tvMensaje.setVisibility(View.GONE);
+                Log.d("RecibidosFragment", "Se encontraron " + correoList.size() + " correos recibidos");
+            } else {
+                binding.tvMensaje.setVisibility(View.VISIBLE);
+                binding.tvMensaje.setText(R.string.no_recibidos_message);
+                Log.d("RecibidosFragment", "No se encontraron correos recibidos para " + emailUsuario);
+            }
+            correoAdapter.notifyDataSetChanged();
+        });
     }
 
     @Override

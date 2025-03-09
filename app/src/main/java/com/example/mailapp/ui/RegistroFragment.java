@@ -1,7 +1,5 @@
 package com.example.mailapp.ui;
 
-import static com.google.android.gms.common.util.IOUtils.toByteArray;
-
 import android.Manifest;
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -9,8 +7,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,7 +14,6 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,16 +28,14 @@ import com.example.mailapp.databinding.FragmentRegistroBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import okhttp3.*;
 
@@ -50,14 +43,14 @@ public class RegistroFragment extends Fragment {
 
     private static final String TAG = "RegistroFragment";
     private static final String SUPABASE_URL = "https://opvcrulzhtnetrajjctt.supabase.co";
-    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdmNydWx6aHRuZXRyYWpqY3R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEzMTA3OTQsImV4cCI6MjA1Njg4Njc5NH0.8B_eRnrWBf3YZP5lFtZunreQ5949SzD4NAZNNTDQhG4";
-    private static final String BUCKET_NAME = "profile-photos";
+    private static final String SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdmNydWx6aHRuZXRyYWpqY3R0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MTMxMDc5NCwiZXhwIjoyMDU2ODg2Nzk0fQ.15tav7RUlZJvEsyXTxJHOSQT0YzYMFrE8-uI5YHG9ck";
+    private static final String BUCKET_NAME = "imagenes";
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 100;
 
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private FragmentRegistroBinding binding;
     private FirebaseAuth mAuth;
     private NavController navController;
+    private FirebaseFirestore db;
     private Uri fotoUri;
 
     @Override
@@ -73,6 +66,7 @@ public class RegistroFragment extends Fragment {
 
         mAuth = FirebaseAuth.getInstance();
         navController = Navigation.findNavController(view);
+        db = FirebaseFirestore.getInstance();
 
         binding.btnBack.setOnClickListener(v -> navController.navigate(R.id.action_registroFragment_to_welcomeFragment));
         binding.etFechaNacimiento.setOnClickListener(v -> mostrarDatePicker());
@@ -101,15 +95,15 @@ public class RegistroFragment extends Fragment {
                 abrirGaleria();
             } else {
                 new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Permiso requerido")
-                        .setMessage("Necesitas conceder el permiso para seleccionar una foto.")
-                        .setPositiveButton("Ir a configuración", (dialog, which) -> {
+                        .setTitle(R.string.permission_required_title)
+                        .setMessage(R.string.permission_required_message)
+                        .setPositiveButton(R.string.go_to_settings, (dialog, which) -> {
                             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                             Uri uri = Uri.fromParts("package", requireContext().getPackageName(), null);
                             intent.setData(uri);
                             startActivity(intent);
                         })
-                        .setNegativeButton("Cancelar", null)
+                        .setNegativeButton(R.string.cancel, null)
                         .show();
             }
         }
@@ -127,6 +121,9 @@ public class RegistroFragment extends Fragment {
         if (requestCode == 1 && resultCode == getActivity().RESULT_OK && data != null) {
             fotoUri = data.getData();
             binding.imgPerfil.setImageURI(fotoUri);
+            Log.d(TAG, "Foto seleccionada: " + fotoUri.toString());
+        } else {
+            Log.w(TAG, "No se seleccionó ninguna foto o hubo un error: requestCode=" + requestCode + ", resultCode=" + resultCode);
         }
     }
 
@@ -175,123 +172,157 @@ public class RegistroFragment extends Fragment {
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 String userId = mAuth.getCurrentUser().getUid();
+                Log.d(TAG, "Usuario registrado con éxito, userId: " + userId);
                 if (fotoUri != null) {
+                    Log.d(TAG, "Intentando subir foto para userId: " + userId);
                     subirFotoASupabase(fotoUri, userId, photoUrl -> {
+                        Log.d(TAG, "Callback recibido con photoUrl: " + (photoUrl != null ? photoUrl : "null"));
                         if (photoUrl != null) {
-                            guardarUsuarioEnSupabase(userId, nombre, fechaNacimiento, email, photoUrl);
+                            guardarUsuarioEnFirestore(userId, nombre, fechaNacimiento, email, photoUrl);
                         } else {
-                            Toast.makeText(requireContext(), "Error al subir la foto", Toast.LENGTH_SHORT).show();
-                            guardarUsuarioEnSupabase(userId, nombre, fechaNacimiento, email, "");
+                            Log.w(TAG, "URL de foto nula, guardando sin foto");
+                            guardarUsuarioEnFirestore(userId, nombre, fechaNacimiento, email, "");
                         }
                     });
                 } else {
-                    guardarUsuarioEnSupabase(userId, nombre, fechaNacimiento, email, "");
+                    Log.d(TAG, "Sin foto seleccionada, guardando usuario sin foto");
+                    guardarUsuarioEnFirestore(userId, nombre, fechaNacimiento, email, "");
                 }
             } else {
                 if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                     binding.layoutEmail.setError("Correo ya registrado");
                 } else {
-                    Toast.makeText(requireContext(), "Error: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    String errorMessage = String.format(getString(R.string.registration_error_message), task.getException().getMessage());
+                    new MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.registration_error_title)
+                            .setMessage(errorMessage)
+                            .setPositiveButton(R.string.ok_button, null)
+                            .show();
                 }
             }
         });
     }
 
-    private void guardarUsuarioEnSupabase(String id, String nombre, String fechaNacimiento, String email, String photoUrl) {
-        OkHttpClient client = new OkHttpClient();
+    private void guardarUsuarioEnFirestore(String id, String nombre, String fechaNacimiento, String email, String photoUrl) {
+        Map<String, Object> usuario = new HashMap<>();
+        usuario.put("id", id);
+        usuario.put("nombre", nombre);
+        usuario.put("fecha_nacimiento", fechaNacimiento);
+        usuario.put("email", email);
+        usuario.put("foto_url", photoUrl);
 
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("id", id);
-            jsonObject.put("nombre", nombre);
-            jsonObject.put("fecha_nacimiento", fechaNacimiento);
-            jsonObject.put("email", email);
-            jsonObject.put("foto_url", photoUrl);
-            Log.d(TAG, "JSON enviado: " + jsonObject.toString());
-        } catch (JSONException e) {
-            Log.e(TAG, "Error creando JSON", e);
-            return;
-        }
-
-        RequestBody body = RequestBody.create(jsonObject.toString(), MediaType.get("application/json"));
-        Request request = new Request.Builder()
-                .url(SUPABASE_URL + "/rest/v1/usuarios")
-                .header("apikey", SUPABASE_KEY)
-                .header("Authorization", "Bearer " + SUPABASE_KEY)
-                .header("Content-Type", "application/json")
-                .post(body)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e(TAG, "Error al guardar usuario en Supabase: " + e.getMessage());
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(requireContext(), "Error al guardar usuario", Toast.LENGTH_SHORT).show());
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                String responseBody = response.body() != null ? response.body().string() : "No body";
-                Log.d(TAG, "Respuesta de Supabase: " + response.code() + " - " + responseBody);
-                if (response.isSuccessful()) {
+        db.collection("usuarios")
+                .document(id)
+                .set(usuario)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Usuario guardado en Firestore con éxito, foto_url: " + photoUrl);
+                    requireActivity().runOnUiThread(() -> {
+                        new MaterialAlertDialogBuilder(requireContext())
+                                .setTitle(R.string.registration_success_title)
+                                .setMessage(R.string.registration_success_message)
+                                .setPositiveButton(R.string.ok_button, (dialog, which) -> {
+                                    navController.navigate(R.id.action_registroFragment_to_loginFragment);
+                                })
+                                .show();
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al guardar usuario en Firestore: " + e.getMessage(), e);
                     requireActivity().runOnUiThread(() ->
-                            navController.navigate(R.id.action_registroFragment_to_loginFragment));
-                } else {
-                    Log.e(TAG, "Error en respuesta: " + response.code() + " - " + responseBody);
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(requireContext(), "Error al guardar usuario: " + responseBody, Toast.LENGTH_LONG).show());
-                }
-            }
-        });
+                            new MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle(R.string.firestore_error_title)
+                                    .setMessage(R.string.firestore_error_message)
+                                    .setPositiveButton(R.string.ok_button, null)
+                                    .show());
+                });
     }
 
     private void subirFotoASupabase(Uri uri, String userId, UploadCallback callback) {
-        executorService.execute(() -> {
-            OkHttpClient client = new OkHttpClient();
-            String fileName = userId + "_" + UUID.randomUUID().toString() + ".jpg";
-            String endpoint = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
+        Log.d(TAG, "Iniciando subida de foto, uri: " + uri.toString());
+        OkHttpClient client = new OkHttpClient();
+        String fileName = userId + "_" + UUID.randomUUID().toString() + ".jpg";
+        String endpoint = SUPABASE_URL + "/storage/v1/object/" + BUCKET_NAME + "/" + fileName;
+        Log.d(TAG, "Endpoint de subida: " + endpoint);
 
-            try {
-                InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
-                if (inputStream == null) {
-                    Log.e(TAG, "Error: No se pudo abrir el InputStream de la imagen");
-                    new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(null));
-                    return;
-                }
-
-                byte[] fileBytes = toByteArray(inputStream);
-                inputStream.close();
-                Log.d(TAG, "Tamaño de la imagen: " + fileBytes.length + " bytes");
-
-                RequestBody fileBody = RequestBody.create(fileBytes, MediaType.parse("image/jpeg"));
-                Request request = new Request.Builder()
-                        .url(endpoint)
-                        .header("apikey", SUPABASE_KEY)
-                        .header("Authorization", "Bearer " + SUPABASE_KEY)
-                        .header("Content-Type", "image/jpeg")
-                        .put(fileBody)
-                        .build();
-
-                Response response = client.newCall(request).execute();
-                String responseBody = response.body() != null ? response.body().string() : "No body";
-                if (response.isSuccessful()) {
-                    String publicUrl = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
-                    Log.d(TAG, "Imagen subida con éxito: " + publicUrl);
-                    new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(publicUrl));
-                } else {
-                    Log.e(TAG, "Error al subir imagen: " + response.code() + " - " + responseBody);
-                    new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(null));
-                }
-            } catch (IOException e) {
-                Log.e(TAG, "Excepción al subir la imagen: " + e.getMessage(), e);
-                new Handler(Looper.getMainLooper()).post(() -> callback.onUploadComplete(null));
+        try {
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+            if (inputStream == null) {
+                Log.e(TAG, "Error: No se pudo abrir el InputStream de la imagen para uri: " + uri);
+                callback.onUploadComplete(null);
+                return;
             }
-        });
+
+            byte[] fileBytes = toByteArray(inputStream);
+            inputStream.close();
+            Log.d(TAG, "Tamaño de la imagen: " + fileBytes.length + " bytes");
+
+            RequestBody fileBody = RequestBody.create(fileBytes, MediaType.parse("image/jpeg"));
+            Request request = new Request.Builder()
+                    .url(endpoint)
+                    .header("apikey", SUPABASE_KEY)
+                    .header("Authorization", "Bearer " + SUPABASE_KEY)
+                    .header("Content-Type", "image/jpeg")
+                    .post(fileBody)
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    Log.e(TAG, "Fallo al subir la imagen: " + e.getMessage(), e);
+                    callback.onUploadComplete(null);
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                    String responseBody = response.body() != null ? response.body().string() : "No body";
+                    Log.d(TAG, "Respuesta de Supabase - Código: " + response.code() + ", Cuerpo: " + responseBody);
+                    Log.d(TAG, "Headers: " + response.headers().toString());
+
+                    if (response.isSuccessful()) {
+                        String publicUrl = SUPABASE_URL + "/storage/v1/object/public/" + BUCKET_NAME + "/" + fileName;
+                        Log.d(TAG, "Imagen subida con éxito: " + publicUrl);
+                        callback.onUploadComplete(publicUrl);
+                    } else {
+                        Log.e(TAG, "Error al subir imagen - Código: " + response.code() + ", Cuerpo: " + responseBody);
+                        callback.onUploadComplete(null);
+                    }
+                }
+            });
+        } catch (IOException e) {
+            Log.e(TAG, "Excepción al subir la imagen: " + e.getMessage(), e);
+            callback.onUploadComplete(null);
+        }
+    }
+
+    private byte[] toByteArray(InputStream inputStream) throws IOException {
+        java.io.ByteArrayOutputStream byteArrayOutputStream = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, bytesRead);
+        }
+        return byteArrayOutputStream.toByteArray();
     }
 
     private interface UploadCallback {
         void onUploadComplete(String photoUrl);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Ocultar el Toolbar cuando el fragmento se muestra
+        requireActivity().findViewById(R.id.toolbar).setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Restaurar la visibilidad del Toolbar cuando el fragmento se oculta
+        View toolbar = requireActivity().findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

@@ -2,20 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_recibidos"
-        android:title="Recibidos" />
+        android:title="@string/recibidos" />
     <item
         android:id="@+id/nav_enviados"
-        android:title="Enviados" />
-    <item
-        android:id="@+id/nav_borradores"
-        android:title="Borradores" />
+        android:title="@string/enviados" />
     <item
         android:id="@+id/nav_busqueda"
-        android:title="Búsqueda" />
+        android:title="@string/busqueda" />
     <item
-        android:id="@+id/nav_settings"
-        android:title="Configuración" />
+        android:id="@+id/nav_configuracion"
+        android:title="@string/settings_title" />
     <item
         android:id="@+id/nav_logout"
-        android:title="Cerrar Sesión" />
+        android:title="@string/salir" />
 </menu>

@@ -12,20 +12,14 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
 import com.example.mailapp.R;
 import com.example.mailapp.databinding.FragmentEnviadosBinding;
-import com.example.mailapp.models.Correo;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.util.ArrayList;
-
 public class EnviadosFragment extends Fragment {
-
     private static final String TAG = "EnviadosFragment";
     private FragmentEnviadosBinding binding;
     private CorreoAdapter adapter;
-    private FirebaseAuth mAuth;
     private NavController navController;
     private CorreoViewModel viewModel;
 
@@ -39,52 +33,42 @@ public class EnviadosFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mAuth = FirebaseAuth.getInstance();
         navController = Navigation.findNavController(view);
-        viewModel = new ViewModelProvider(this).get(CorreoViewModel.class);
-
-        adapter = new CorreoAdapter(new ArrayList<>(), correo -> {
-            Log.d(TAG, "Correo seleccionado: " + correo.getAsunto());
-        });
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new CorreoAdapter(correo -> {
+            Bundle args = new Bundle();
+            args.putString("correoId", correo.getId());
+            navController.navigate(R.id.action_enviadosFragment_to_detalleCorreoFragment, args);
+        }, false);
         binding.recyclerView.setAdapter(adapter);
 
-        binding.btnNuevoCorreo.setOnClickListener(v -> {
-            navController.navigate(R.id.action_enviadosFragment_to_crearCorreoFragment);
-        });
-
-        viewModel.getCorreosEnviadosLiveData().observe(getViewLifecycleOwner(), correos -> {
-            if (correos != null) {
-                if (correos.isEmpty()) {
-                    binding.tvMensaje.setText("No tienes correos enviados");
-                    binding.tvMensaje.setVisibility(View.VISIBLE);
-                } else {
-                    binding.tvMensaje.setVisibility(View.GONE);
-                    adapter.actualizarLista(correos);
-                }
-            }
-        });
-
-        //Recargar correos al volver al fragmento
-        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            if (destination.getId() == R.id.enviadosFragment) {
-                cargarCorreosEnviados();
-            }
-        });
-
-        cargarCorreosEnviados();
+        viewModel = new ViewModelProvider(this).get(CorreoViewModel.class);
+        loadEnviados();
     }
 
-    private void cargarCorreosEnviados() {
-        if (mAuth.getCurrentUser() == null) {
-            Log.e(TAG, "Usuario no autenticado");
-            binding.tvMensaje.setText("Usuario no autenticado");
+    private void loadEnviados() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        if (userId == null) {
+            Log.e(TAG, "Usuario no autenticado, userId es null");
+            if (binding != null) {
+                binding.tvMensaje.setVisibility(View.VISIBLE);
+                binding.tvMensaje.setText(R.string.no_auth_error);
+            }
             return;
         }
-
-        String userId = mAuth.getCurrentUser().getUid();
-        viewModel.cargarCorreosEnviados(userId);
+        Log.d(TAG, "Cargando correos enviados por emisor: " + userId);
+        viewModel.getCorreosEnviadosLiveData(userId).observe(getViewLifecycleOwner(), correos -> {
+            if (binding == null) return;
+            adapter.setCorreoList(correos);
+            if (correos == null || correos.isEmpty()) {
+                binding.tvMensaje.setVisibility(View.VISIBLE);
+                binding.tvMensaje.setText(R.string.no_enviados_message);
+            } else {
+                binding.tvMensaje.setVisibility(View.GONE);
+            }
+        });
     }
 
     @Override
