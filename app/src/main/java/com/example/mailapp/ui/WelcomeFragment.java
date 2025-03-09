@@ -34,14 +34,14 @@ public class WelcomeFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        // Ocultar el Toolbar cuando el fragmento se muestra
+        //Ocultar el Toolbar cuando el fragmento se muestra
         requireActivity().findViewById(R.id.toolbar).setVisibility(View.GONE);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        // Restaurar la visibilidad del Toolbar cuando el fragmento se oculta
+        //Restaurar la visibilidad del Toolbar cuando el fragmento se oculta
         View toolbar = requireActivity().findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);

@@ -136,7 +136,7 @@ public class RegistroFragment extends Fragment {
                     if (esFechaValida(year)) {
                         String fecha = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth);
                         binding.etFechaNacimiento.setText(fecha);
-                        binding.layoutFechaNacimiento.setError(null); // Limpiar error si la fecha es válida
+                        binding.layoutFechaNacimiento.setError(null);
                     } else {
                         binding.etFechaNacimiento.setText("");
                         binding.layoutFechaNacimiento.setError(getString(R.string.invalid_date_error));
@@ -170,19 +170,19 @@ public class RegistroFragment extends Fragment {
         String password = binding.etPassword.getText().toString().trim();
         String confirmPassword = binding.etConfirmPassword.getText().toString().trim();
 
-        // Validar nombre
+        //Validar nombre
         if (TextUtils.isEmpty(nombre)) {
             binding.layoutNombre.setError(getString(R.string.name_empty_error));
             esValido = false;
         }
 
-        // Validar fecha de nacimiento
+        //Validar fecha de nacimiento
         if (TextUtils.isEmpty(fechaNacimiento)) {
             binding.layoutFechaNacimiento.setError(getString(R.string.birth_date_empty_error));
             esValido = false;
         }
 
-        // Validar correo
+        //Validar correo
         if (TextUtils.isEmpty(email)) {
             binding.layoutEmail.setError(getString(R.string.email_empty_error));
             esValido = false;
@@ -191,13 +191,13 @@ public class RegistroFragment extends Fragment {
             esValido = false;
         }
 
-        // Validar contraseña
+        //Validar contraseña
         if (TextUtils.isEmpty(password)) {
             binding.layoutPassword.setError(getString(R.string.password_empty_error));
             esValido = false;
         }
 
-        // Validar confirmación de contraseña
+        //Validar confirmación de contraseña
         if (TextUtils.isEmpty(confirmPassword)) {
             binding.layoutConfirmPassword.setError(getString(R.string.confirm_password_empty_error));
             esValido = false;
@@ -210,7 +210,7 @@ public class RegistroFragment extends Fragment {
     }
 
     private void registrarUsuario() {
-        // Validar todos los campos antes de proceder
+        //Validar todos los campos
         if (!validarCampos()) {
             return;
         }
@@ -359,14 +359,14 @@ public class RegistroFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        // Ocultar el Toolbar cuando el fragmento se muestra
+        //Ocultar el Toolbar cuando el fragmento se muestra
         requireActivity().findViewById(R.id.toolbar).setVisibility(View.GONE);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        // Restaurar la visibilidad del Toolbar cuando el fragmento se oculta
+        //Restaurar la visibilidad del Toolbar cuando el fragmento se oculta
         View toolbar = requireActivity().findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);

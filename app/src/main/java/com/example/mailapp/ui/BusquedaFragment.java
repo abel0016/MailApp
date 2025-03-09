@@ -44,7 +44,7 @@ public class BusquedaFragment extends Fragment {
         navController = Navigation.findNavController(view);
         allCorreos = new ArrayList<>();
 
-        // Inicializar Firebase Auth y obtener userId y userEmail
+        //Inicializar Firebase Auth y obtener userId y userEmail
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
             binding.tvMensaje.setVisibility(View.VISIBLE);
@@ -54,7 +54,7 @@ public class BusquedaFragment extends Fragment {
         userId = auth.getCurrentUser().getUid();
         userEmail = auth.getCurrentUser().getEmail();
 
-        // Configurar RecyclerView y Adapter
+        //Configurar RecyclerView y Adapter
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new CorreoAdapter(correo -> {
             Bundle args = new Bundle();
@@ -63,11 +63,11 @@ public class BusquedaFragment extends Fragment {
         }, true); // Pasamos true porque queremos mostrar el remitente (como en Recibidos)
         binding.recyclerView.setAdapter(adapter);
 
-        // Inicializar ViewModel y cargar correos
+        //Inicializar ViewModel y cargar correos
         viewModel = new ViewModelProvider(this).get(CorreoViewModel.class);
         loadAllCorreos();
 
-        // Configurar SearchView para filtrar
+        //Configurar SearchView para filtrar
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -84,7 +84,7 @@ public class BusquedaFragment extends Fragment {
     }
 
     private void loadAllCorreos() {
-        // Cargar correos recibidos
+        //Cargar correos recibidos
         viewModel.getCorreosLiveData(userEmail).observe(getViewLifecycleOwner(), recibidos -> {
             if (recibidos != null) {
                 allCorreos.addAll(recibidos);
@@ -92,7 +92,7 @@ public class BusquedaFragment extends Fragment {
             }
         });
 
-        // Cargar correos enviados
+        //Cargar correos enviados
         viewModel.getCorreosEnviadosLiveData(userId).observe(getViewLifecycleOwner(), enviados -> {
             if (enviados != null) {
                 allCorreos.addAll(enviados);

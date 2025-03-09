@@ -20,8 +20,6 @@ public class UsuarioRepository {
         }
         return instance;
     }
-
-    // Método para obtener los datos del usuario (devuelve Task<Usuario>)
     public Task<Usuario> getUsuarioById(String usuarioId) {
         return db.collection("usuarios")
                 .document(usuarioId)
@@ -30,11 +28,10 @@ public class UsuarioRepository {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
-                            // Usar toObject para convertir directamente el DocumentSnapshot a Usuario
                             return document.toObject(Usuario.class);
                         }
                     }
-                    return null; // Retorna null si falla o no existe
+                    return null;
                 });
     }
 

@@ -48,7 +48,7 @@ public class RecibidosFragment extends Fragment {
         auth = FirebaseAuth.getInstance();
         cargarCorreosRecibidos();
 
-        // Añadir OnClickListener al botón de nuevo correo
+        //Añadir OnClickListener al botón de nuevo correo
         binding.btnNuevoCorreo.setOnClickListener(v -> {
             Log.d("RecibidosFragment", "Botón Nuevo Correo presionado");
             Navigation.findNavController(view).navigate(R.id.action_recibidosFragment_to_crearCorreoFragment);

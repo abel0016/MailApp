@@ -109,11 +109,8 @@ public class MainActivity extends AppCompatActivity {
             binding.drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
-
-        // Inicializar el headerBinding una sola vez
         View headerView = binding.navigationView.getHeaderView(0);
         if (headerView == null) {
-            Log.e(TAG, "HeaderView no encontrado! Asegúrate de que el layout activity_main.xml incluye un NavigationView con un header.");
             return;
         }
         try {
@@ -167,14 +164,13 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Email de FirebaseAuth asignado al header: " + email);
         } else {
             headerBinding.navHeaderEmail.setText("Usuario");
-            Log.w(TAG, "El email de FirebaseAuth es null o vacío.");
+            Log.w(TAG, "El email de FirebaseAuth es null o vacío");
         }
 
-        // Usar UsuarioRepository para obtener los datos
+        //Usar UsuarioRepository para obtener los datos
         UsuarioRepository.getInstance().getUsuarioById(currentUser.getUid())
                 .addOnSuccessListener(usuario -> {
                     if (usuario != null) {
-                        // No usamos exists() ni toObject() aquí porque usuario ya es un objeto de tipo Usuario
                         Log.d(TAG, "Datos desde Firestore - Email: " + usuario.getEmail() + ", Foto URL: " + usuario.getFotoUrl());
                         if (usuario.getEmail() != null && !usuario.getEmail().isEmpty()) {
                             headerBinding.navHeaderEmail.setText(usuario.getEmail());
@@ -220,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Bitmap doInBackground(String... urls) {
             String imageUrl = urls[0];
-            Log.d(TAG, "Descargando imagen desde URL: " + imageUrl); // Depuración
+            Log.d(TAG, "Descargando imagen desde URL: " + imageUrl);
             Bitmap bitmap = null;
             try {
                 URL url = new URL(imageUrl);
@@ -228,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                 connection.setDoInput(true);
                 connection.connect();
                 int responseCode = connection.getResponseCode();
-                Log.d(TAG, "Código de respuesta HTTP: " + responseCode); // Depuración
+                Log.d(TAG, "Código de respuesta HTTP: " + responseCode);
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     InputStream input = connection.getInputStream();
                     bitmap = BitmapFactory.decodeStream(input);
@@ -246,7 +242,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Bitmap result) {
             if (activityDestroyed) {
-                Log.w(TAG, "Actividad destruida, no se puede establecer la imagen.");
                 return;
             }
             if (result != null) {
@@ -254,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
                 headerBinding.navHeaderImage.setImageBitmap(circularBitmap);
                 Log.d(TAG, "Imagen cargada exitosamente en el DrawerMenu");
             } else {
-                Log.w(TAG, "No se pudo descargar la imagen, usando placeholder.");
+                Log.w(TAG, "No se pudo descargar la imagen, usando placeholder");
                 headerBinding.navHeaderImage.setImageResource(R.drawable.ic_profile_placeholder);
             }
         }
@@ -276,13 +271,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Método público para actualizar el Drawer
+    //Método público para actualizar el Drawer
     public void actualizarDrawer() {
-        // Añadir un pequeño retraso para permitir que Firestore sincronice
+        //Añadir un pequeño retraso para permitir que Firestore sincronice
         new android.os.Handler().postDelayed(() -> {
             FirebaseUser currentUser = mAuth.getCurrentUser();
             updateNavigationHeader(currentUser);
-        }, 2000); // Retraso de 2 segundo
+        }, 2000);
     }
 
     private void applySavedTheme() {

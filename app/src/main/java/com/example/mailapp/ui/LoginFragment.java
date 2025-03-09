@@ -40,7 +40,7 @@ public class LoginFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         navController = Navigation.findNavController(view);
 
-        // Verificar el usuario actual al cargar el fragmento
+        //Verificar el usuario actual al cargar el fragmento
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             Log.d(TAG, "Usuario actual al cargar LoginFragment: " + currentUser.getEmail() + " (UID: " + currentUser.getUid() + ")");
@@ -67,11 +67,7 @@ public class LoginFragment extends Fragment {
             valido = false;
         }
         if (!valido) return;
-
-        // Mostrar las credenciales que se están intentando usar
         Log.d(TAG, "Intentando iniciar sesión con email: " + email + ", contraseña: [oculta]");
-
-        // Cerrar sesión del usuario anterior
         FirebaseUser userBeforeSignOut = mAuth.getCurrentUser();
         if (userBeforeSignOut != null) {
             Log.d(TAG, "Usuario antes de signOut: " + userBeforeSignOut.getEmail() + " (UID: " + userBeforeSignOut.getUid() + ")");
@@ -79,8 +75,6 @@ public class LoginFragment extends Fragment {
             Log.d(TAG, "No hay usuario antes de signOut");
         }
         mAuth.signOut();
-
-        // Verificar que signOut se realizó correctamente
         if (mAuth.getCurrentUser() == null) {
             Log.d(TAG, "signOut exitoso: No hay usuario autenticado");
         } else {
@@ -93,14 +87,13 @@ public class LoginFragment extends Fragment {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             Log.d(TAG, "Inicio de sesión exitoso: " + user.getEmail() + " (UID: " + user.getUid() + ")");
-                            // Verificar que el usuario autenticado coincida con el correo ingresado
+                            //Verificar que el usuario autenticado coincida con el correo ingresado
                             if (!user.getEmail().equalsIgnoreCase(email)) {
                                 Log.e(TAG, "El usuario autenticado no coincide con el correo ingresado. Esperado: " + email + ", Obtenido: " + user.getEmail());
-                                mAuth.signOut(); // Cerrar sesión si hay un mismatch
+                                mAuth.signOut();
                                 binding.etPasswordLogin.setError("Error: usuario incorrecto autenticado. Intente de nuevo.");
                                 return;
                             }
-                            // Forzar actualización del Drawer después de iniciar sesión
                             if (requireActivity() instanceof MainActivity) {
                                 ((MainActivity) requireActivity()).actualizarDrawer();
                             }
@@ -125,7 +118,6 @@ public class LoginFragment extends Fragment {
                     }
                 });
     }
-
     private void limpiarErrores() {
         binding.etEmailLogin.setError(null);
         binding.etPasswordLogin.setError(null);
@@ -134,14 +126,14 @@ public class LoginFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        // Ocultar el Toolbar cuando el fragmento se muestra
+        //Ocultar el Toolbar cuando el fragmento se muestra
         requireActivity().findViewById(R.id.toolbar).setVisibility(View.GONE);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        // Restaurar la visibilidad del Toolbar cuando el fragmento se oculta
+        //Restaurar la visibilidad del Toolbar cuando el fragmento se oculta
         View toolbar = requireActivity().findViewById(R.id.toolbar);
         if (toolbar != null) {
             toolbar.setVisibility(View.VISIBLE);

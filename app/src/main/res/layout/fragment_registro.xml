@@ -159,10 +159,6 @@
             android:textColor="@color/white" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Botón para seleccionar foto -->
-
-    <!-- ImageView para mostrar la foto seleccionada -->
-
     <Button
         android:id="@+id/btnRegistrar"
         android:layout_width="190dp"

@@ -74,7 +74,6 @@ public class CorreoAdapter extends RecyclerView.Adapter<CorreoAdapter.CorreoView
             if (isRecibidos) {
                 usuarioRepository.getUsuarioById(correo.getRemitenteId())
                         .addOnSuccessListener(usuario -> {
-                            // 'usuario' es de tipo Usuario, no DocumentSnapshot
                             if (usuario != null && usuario.getEmail() != null) {
                                 binding.remitente.setText("De: " + usuario.getEmail());
                             } else {

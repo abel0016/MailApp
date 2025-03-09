@@ -55,7 +55,6 @@ public class DetalleCorreoFragment extends Fragment {
                     usuarioRepository.getUsuarioById(correo.getRemitenteId())
                             .addOnSuccessListener(usuario -> {
                                 if (binding == null) return;
-                                // 'usuario' es de tipo Usuario, no DocumentSnapshot
                                 if (usuario != null && usuario.getEmail() != null) {
                                     binding.remitente.setText("Remitente: " + usuario.getEmail());
                                 } else {

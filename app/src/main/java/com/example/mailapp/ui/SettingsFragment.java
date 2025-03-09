@@ -46,8 +46,6 @@ public class SettingsFragment extends Fragment {
 
         navController = Navigation.findNavController(view);
         preferences = requireActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-
-        // Configurar textos desde recursos
         binding.tvTitle.setText(R.string.settings_title);
         binding.tvThemeLabel.setText(R.string.theme_label);
         binding.rbDayMode.setText(R.string.day_mode);
@@ -56,8 +54,6 @@ public class SettingsFragment extends Fragment {
         binding.rbSpanish.setText(R.string.spanish);
         binding.rbEnglish.setText(R.string.english);
         binding.btnSave.setText(R.string.save);
-
-        // Cargar preferencias guardadas
         loadPreferences();
 
         binding.btnSave.setOnClickListener(v -> savePreferences());
@@ -66,15 +62,11 @@ public class SettingsFragment extends Fragment {
     private void loadPreferences() {
         int themeMode = preferences.getInt(KEY_THEME, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         String language = preferences.getString(KEY_LANGUAGE, "es");
-
-        // Configurar RadioButtons para el tema
         if (themeMode == AppCompatDelegate.MODE_NIGHT_NO) {
             binding.rbDayMode.setChecked(true);
         } else if (themeMode == AppCompatDelegate.MODE_NIGHT_YES) {
             binding.rbNightMode.setChecked(true);
         }
-
-        // Configurar RadioButtons para el idioma
         if (language.equals("es")) {
             binding.rbSpanish.setChecked(true);
         } else if (language.equals("en")) {
@@ -86,7 +78,7 @@ public class SettingsFragment extends Fragment {
         int themeMode;
         String language;
 
-        // Obtener selección de tema
+        //Obtener selección de tema
         int selectedThemeId = binding.rgTheme.getCheckedRadioButtonId();
         if (selectedThemeId == R.id.rbDayMode) {
             themeMode = AppCompatDelegate.MODE_NIGHT_NO;
@@ -96,31 +88,31 @@ public class SettingsFragment extends Fragment {
             themeMode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
         }
 
-        // Obtener selección de idioma
+        //Obtener selección de idioma
         int selectedLanguageId = binding.rgLanguage.getCheckedRadioButtonId();
         if (selectedLanguageId == R.id.rbSpanish) {
             language = "es";
         } else if (selectedLanguageId == R.id.rbEnglish) {
             language = "en";
         } else {
-            language = "es"; // Valor por defecto
+            language = "es";
         }
 
-        // Guardar en SharedPreferences
+        //Guardar en SharedPreferences
         SharedPreferences.Editor editor = preferences.edit();
         editor.putInt(KEY_THEME, themeMode);
         editor.putString(KEY_LANGUAGE, language);
         editor.apply();
 
-        // Mostrar AlertDialog y manejar cambios después de cerrarlo
+        //Mostrar AlertDialog y manejar cambios después de cerrarlo
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.settings_title)
                 .setMessage(R.string.settings_saved_message)
                 .setPositiveButton(R.string.ok_button, (dialog, which) -> {
-                    // Aplicar tema y navegación solo después de aceptar
+                    //Aplicar tema y navegación solo después de aceptar
                     applyTheme(themeMode);
                     setLocale(language);
-                    navController.navigateUp(); // Navegar al fragmento anterior
+                    navController.navigateUp();
                 })
                 .setOnDismissListener(dialog -> {
                 })
@@ -129,8 +121,6 @@ public class SettingsFragment extends Fragment {
 
     private void applyTheme(int themeMode) {
         AppCompatDelegate.setDefaultNightMode(themeMode);
-        // Evitar recreate() aquí; lo manejaremos manualmente si es necesario
-        // requireActivity().recreate(); // Comentado para evitar fugas
     }
 
     private void setLocale(String languageCode) {
