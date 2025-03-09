@@ -53,17 +53,13 @@ public class DetalleCorreoFragment extends Fragment {
                 Correo correo = task.getResult().toObject(Correo.class);
                 if (correo != null) {
                     usuarioRepository.getUsuarioById(correo.getRemitenteId())
-                            .addOnSuccessListener(userDoc -> {
+                            .addOnSuccessListener(usuario -> {
                                 if (binding == null) return;
-                                if (userDoc.exists()) {
-                                    Usuario usuario = userDoc.toObject(Usuario.class);
-                                    if (usuario != null && usuario.getEmail() != null) {
-                                        binding.remitente.setText("Remitente: " + usuario.getEmail());
-                                    } else {
-                                        binding.remitente.setText(R.string.unknown_sender);
-                                    }
+                                // 'usuario' es de tipo Usuario, no DocumentSnapshot
+                                if (usuario != null && usuario.getEmail() != null) {
+                                    binding.remitente.setText("Remitente: " + usuario.getEmail());
                                 } else {
-                                    binding.remitente.setText(R.string.user_not_found);
+                                    binding.remitente.setText(R.string.unknown_sender);
                                 }
                             })
                             .addOnFailureListener(e -> {

@@ -21,7 +21,27 @@ public class UsuarioRepository {
         return instance;
     }
 
-    public Task<DocumentSnapshot> getUsuarioById(String usuarioId) {
-        return db.collection("usuarios").document(usuarioId).get();
+    // Método para obtener los datos del usuario (devuelve Task<Usuario>)
+    public Task<Usuario> getUsuarioById(String usuarioId) {
+        return db.collection("usuarios")
+                .document(usuarioId)
+                .get()
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            // Usar toObject para convertir directamente el DocumentSnapshot a Usuario
+                            return document.toObject(Usuario.class);
+                        }
+                    }
+                    return null; // Retorna null si falla o no existe
+                });
+    }
+
+    public Task<Void> guardarUsuario(String id, String nombre, String fechaNacimiento, String email, String photoUrl) {
+        Usuario usuario = new Usuario(id, nombre, fechaNacimiento, email, photoUrl);
+        return db.collection("usuarios")
+                .document(id)
+                .set(usuario);
     }
 }

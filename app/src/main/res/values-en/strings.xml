@@ -61,4 +61,13 @@
     <string name="enviados">Sent</string>
     <string name="busqueda">Search</string>
     <string name="salir">Logout</string>
+    <string name="name_empty_error">Name is required</string>
+    <string name="birth_date_empty_error">Birth date is required</string>
+    <string name="email_empty_error">Email is required</string>
+    <string name="email_invalid_error">Invalid email</string>
+    <string name="password_empty_error">Password is required</string>
+    <string name="invalid_date_error">Invalid date (between 12 and 100 years)</string>
+    <string name="email_already_registered_error">Email already registered</string>
+    <string name="confirm_password_empty_error">Password confirmation is required</string>
+    <string name="password_mismatch_error">Passwords do not match</string>
 </resources>

@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -17,12 +18,15 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
+import com.example.mailapp.database.UsuarioRepository;
 import com.example.mailapp.databinding.ActivityMainBinding;
 import com.example.mailapp.databinding.NavHeaderBinding;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Source;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -135,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         mAuth.addAuthStateListener(authStateListener);
-        // No llamamos a updateNavigationHeader aquí porque el AuthStateListener ya lo hará
     }
 
     @Override
@@ -167,20 +170,18 @@ public class MainActivity extends AppCompatActivity {
             Log.w(TAG, "El email de FirebaseAuth es null o vacío.");
         }
 
-        db.collection("usuarios").document(currentUser.getUid())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    Log.d(TAG, "Consulta a Firestore para UID: " + currentUser.getUid());
-                    if (documentSnapshot.exists()) {
-                        String dbEmail = documentSnapshot.getString("email");
-                        String photoUrl = documentSnapshot.getString("foto_url");
-                        Log.d(TAG, "Datos desde Firestore - Email: " + dbEmail + ", Foto URL: " + photoUrl);
-
-                        if (dbEmail != null && !dbEmail.isEmpty()) {
-                            headerBinding.navHeaderEmail.setText(dbEmail);
-                            Log.d(TAG, "Email de Firestore asignado al header: " + dbEmail);
+        // Usar UsuarioRepository para obtener los datos
+        UsuarioRepository.getInstance().getUsuarioById(currentUser.getUid())
+                .addOnSuccessListener(usuario -> {
+                    if (usuario != null) {
+                        // No usamos exists() ni toObject() aquí porque usuario ya es un objeto de tipo Usuario
+                        Log.d(TAG, "Datos desde Firestore - Email: " + usuario.getEmail() + ", Foto URL: " + usuario.getFotoUrl());
+                        if (usuario.getEmail() != null && !usuario.getEmail().isEmpty()) {
+                            headerBinding.navHeaderEmail.setText(usuario.getEmail());
+                            Log.d(TAG, "Email de Firestore asignado al header: " + usuario.getEmail());
                         }
 
+                        String photoUrl = usuario.getFotoUrl();
                         if (photoUrl != null && !photoUrl.isEmpty()) {
                             Log.d(TAG, "Intentando cargar imagen desde URL: " + photoUrl);
                             new DownloadImageTask(headerBinding).execute(photoUrl);
@@ -189,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
                             headerBinding.navHeaderImage.setImageResource(R.drawable.ic_profile_placeholder);
                         }
                     } else {
-                        Log.w(TAG, "Documento no encontrado en Firestore para UID: " + currentUser.getUid());
+                        Log.w(TAG, "Usuario no encontrado en Firestore para UID: " + currentUser.getUid());
                         headerBinding.navHeaderImage.setImageResource(R.drawable.ic_profile_placeholder);
                     }
                 })
@@ -219,15 +220,22 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Bitmap doInBackground(String... urls) {
             String imageUrl = urls[0];
+            Log.d(TAG, "Descargando imagen desde URL: " + imageUrl); // Depuración
             Bitmap bitmap = null;
             try {
                 URL url = new URL(imageUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoInput(true);
                 connection.connect();
-                InputStream input = connection.getInputStream();
-                bitmap = BitmapFactory.decodeStream(input);
-                input.close();
+                int responseCode = connection.getResponseCode();
+                Log.d(TAG, "Código de respuesta HTTP: " + responseCode); // Depuración
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    InputStream input = connection.getInputStream();
+                    bitmap = BitmapFactory.decodeStream(input);
+                    input.close();
+                } else {
+                    Log.w(TAG, "Respuesta no exitosa al descargar imagen: " + responseCode);
+                }
                 connection.disconnect();
             } catch (Exception e) {
                 Log.e(TAG, "Error al descargar imagen: " + e.getMessage(), e);
@@ -244,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
             if (result != null) {
                 Bitmap circularBitmap = getCircularBitmap(result);
                 headerBinding.navHeaderImage.setImageBitmap(circularBitmap);
+                Log.d(TAG, "Imagen cargada exitosamente en el DrawerMenu");
             } else {
                 Log.w(TAG, "No se pudo descargar la imagen, usando placeholder.");
                 headerBinding.navHeaderImage.setImageResource(R.drawable.ic_profile_placeholder);
@@ -265,6 +274,15 @@ public class MainActivity extends AppCompatActivity {
             canvas.drawBitmap(bitmap, rect, rect, paint);
             return output;
         }
+    }
+
+    // Método público para actualizar el Drawer
+    public void actualizarDrawer() {
+        // Añadir un pequeño retraso para permitir que Firestore sincronice
+        new android.os.Handler().postDelayed(() -> {
+            FirebaseUser currentUser = mAuth.getCurrentUser();
+            updateNavigationHeader(currentUser);
+        }, 2000); // Retraso de 2 segundo
     }
 
     private void applySavedTheme() {

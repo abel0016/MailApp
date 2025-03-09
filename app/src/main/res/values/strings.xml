@@ -61,4 +61,13 @@
     <string name="enviados">Enviados</string>
     <string name="busqueda">Busqueda</string>
     <string name="salir">Cerrar Sesion</string>
+    <string name="name_empty_error">El nombre es obligatorio</string>
+    <string name="birth_date_empty_error">La fecha de nacimiento es obligatoria</string>
+    <string name="email_empty_error">El correo electrónico es obligatorio</string>
+    <string name="email_invalid_error">Correo electrónico inválido</string>
+    <string name="password_empty_error">La contraseña es obligatoria</string>
+    <string name="invalid_date_error">Fecha inválida (entre 12 y 100 años)</string>
+    <string name="email_already_registered_error">Correo ya registrado</string>
+    <string name="confirm_password_empty_error">La confirmación de la contraseña es obligatoria</string>
+    <string name="password_mismatch_error">Las contraseñas no coinciden</string>
 </resources>

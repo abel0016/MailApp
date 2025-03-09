@@ -73,16 +73,12 @@ public class CorreoAdapter extends RecyclerView.Adapter<CorreoAdapter.CorreoView
         void bind(Correo correo) {
             if (isRecibidos) {
                 usuarioRepository.getUsuarioById(correo.getRemitenteId())
-                        .addOnSuccessListener(userDoc -> {
-                            if (userDoc.exists()) {
-                                Usuario usuario = userDoc.toObject(Usuario.class);
-                                if (usuario != null && usuario.getEmail() != null) {
-                                    binding.remitente.setText("De: " + usuario.getEmail());
-                                } else {
-                                    binding.remitente.setText("De: Desconocido");
-                                }
+                        .addOnSuccessListener(usuario -> {
+                            // 'usuario' es de tipo Usuario, no DocumentSnapshot
+                            if (usuario != null && usuario.getEmail() != null) {
+                                binding.remitente.setText("De: " + usuario.getEmail());
                             } else {
-                                binding.remitente.setText("De: Usuario no encontrado");
+                                binding.remitente.setText("De: Desconocido");
                             }
                         })
                         .addOnFailureListener(e -> {

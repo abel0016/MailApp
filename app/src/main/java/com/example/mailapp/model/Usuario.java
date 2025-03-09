@@ -1,5 +1,7 @@
 package com.example.mailapp.model;
 
+import com.google.firebase.database.PropertyName;
+
 public class Usuario {
     private String id;
     private String nombre;
@@ -44,5 +46,6 @@ public class Usuario {
         this.email = email;
     }
     public String getFotoUrl() { return fotoUrl; }
+
     public void setFotoUrl(String fotoUrl) { this.fotoUrl = fotoUrl; }
 }

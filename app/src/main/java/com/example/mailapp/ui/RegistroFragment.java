@@ -23,18 +23,17 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import com.example.mailapp.MainActivity;
 import com.example.mailapp.R;
+import com.example.mailapp.database.UsuarioRepository;
 import com.example.mailapp.databinding.FragmentRegistroBinding;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import okhttp3.*;
@@ -50,7 +49,6 @@ public class RegistroFragment extends Fragment {
     private FragmentRegistroBinding binding;
     private FirebaseAuth mAuth;
     private NavController navController;
-    private FirebaseFirestore db;
     private Uri fotoUri;
 
     @Override
@@ -66,7 +64,6 @@ public class RegistroFragment extends Fragment {
 
         mAuth = FirebaseAuth.getInstance();
         navController = Navigation.findNavController(view);
-        db = FirebaseFirestore.getInstance();
 
         binding.btnBack.setOnClickListener(v -> navController.navigate(R.id.action_registroFragment_to_welcomeFragment));
         binding.etFechaNacimiento.setOnClickListener(v -> mostrarDatePicker());
@@ -139,9 +136,10 @@ public class RegistroFragment extends Fragment {
                     if (esFechaValida(year)) {
                         String fecha = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth);
                         binding.etFechaNacimiento.setText(fecha);
+                        binding.layoutFechaNacimiento.setError(null); // Limpiar error si la fecha es válida
                     } else {
                         binding.etFechaNacimiento.setText("");
-                        binding.layoutFechaNacimiento.setError("Fecha inválida (entre 12 y 100 años)");
+                        binding.layoutFechaNacimiento.setError(getString(R.string.invalid_date_error));
                     }
                 },
                 anno, mes, dia
@@ -154,20 +152,73 @@ public class RegistroFragment extends Fragment {
         return edad >= 12 && edad <= 100;
     }
 
-    private void registrarUsuario() {
+    private void limpiarErrores() {
+        binding.layoutNombre.setError(null);
+        binding.layoutFechaNacimiento.setError(null);
+        binding.layoutEmail.setError(null);
+        binding.layoutPassword.setError(null);
+        binding.layoutConfirmPassword.setError(null);
+    }
+
+    private boolean validarCampos() {
+        boolean esValido = true;
+        limpiarErrores();
+
         String nombre = binding.etNombre.getText().toString().trim();
         String fechaNacimiento = binding.etFechaNacimiento.getText().toString().trim();
         String email = binding.etEmail.getText().toString().trim();
         String password = binding.etPassword.getText().toString().trim();
+        String confirmPassword = binding.etConfirmPassword.getText().toString().trim();
 
-        if (TextUtils.isEmpty(nombre) || TextUtils.isEmpty(fechaNacimiento) || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-            binding.layoutEmail.setError("Completa todos los campos");
+        // Validar nombre
+        if (TextUtils.isEmpty(nombre)) {
+            binding.layoutNombre.setError(getString(R.string.name_empty_error));
+            esValido = false;
+        }
+
+        // Validar fecha de nacimiento
+        if (TextUtils.isEmpty(fechaNacimiento)) {
+            binding.layoutFechaNacimiento.setError(getString(R.string.birth_date_empty_error));
+            esValido = false;
+        }
+
+        // Validar correo
+        if (TextUtils.isEmpty(email)) {
+            binding.layoutEmail.setError(getString(R.string.email_empty_error));
+            esValido = false;
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.layoutEmail.setError(getString(R.string.email_invalid_error));
+            esValido = false;
+        }
+
+        // Validar contraseña
+        if (TextUtils.isEmpty(password)) {
+            binding.layoutPassword.setError(getString(R.string.password_empty_error));
+            esValido = false;
+        }
+
+        // Validar confirmación de contraseña
+        if (TextUtils.isEmpty(confirmPassword)) {
+            binding.layoutConfirmPassword.setError(getString(R.string.confirm_password_empty_error));
+            esValido = false;
+        } else if (!password.equals(confirmPassword)) {
+            binding.layoutConfirmPassword.setError(getString(R.string.password_mismatch_error));
+            esValido = false;
+        }
+
+        return esValido;
+    }
+
+    private void registrarUsuario() {
+        // Validar todos los campos antes de proceder
+        if (!validarCampos()) {
             return;
         }
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.layoutEmail.setError("Correo inválido");
-            return;
-        }
+
+        String nombre = binding.etNombre.getText().toString().trim();
+        String fechaNacimiento = binding.etFechaNacimiento.getText().toString().trim();
+        String email = binding.etEmail.getText().toString().trim();
+        String password = binding.etPassword.getText().toString().trim();
 
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -178,19 +229,19 @@ public class RegistroFragment extends Fragment {
                     subirFotoASupabase(fotoUri, userId, photoUrl -> {
                         Log.d(TAG, "Callback recibido con photoUrl: " + (photoUrl != null ? photoUrl : "null"));
                         if (photoUrl != null) {
-                            guardarUsuarioEnFirestore(userId, nombre, fechaNacimiento, email, photoUrl);
+                            guardarUsuarioEnRepository(userId, nombre, fechaNacimiento, email, photoUrl);
                         } else {
                             Log.w(TAG, "URL de foto nula, guardando sin foto");
-                            guardarUsuarioEnFirestore(userId, nombre, fechaNacimiento, email, "");
+                            guardarUsuarioEnRepository(userId, nombre, fechaNacimiento, email, "");
                         }
                     });
                 } else {
                     Log.d(TAG, "Sin foto seleccionada, guardando usuario sin foto");
-                    guardarUsuarioEnFirestore(userId, nombre, fechaNacimiento, email, "");
+                    guardarUsuarioEnRepository(userId, nombre, fechaNacimiento, email, "");
                 }
             } else {
                 if (task.getException() instanceof FirebaseAuthUserCollisionException) {
-                    binding.layoutEmail.setError("Correo ya registrado");
+                    binding.layoutEmail.setError(getString(R.string.email_already_registered_error));
                 } else {
                     String errorMessage = String.format(getString(R.string.registration_error_message), task.getException().getMessage());
                     new MaterialAlertDialogBuilder(requireContext())
@@ -203,17 +254,10 @@ public class RegistroFragment extends Fragment {
         });
     }
 
-    private void guardarUsuarioEnFirestore(String id, String nombre, String fechaNacimiento, String email, String photoUrl) {
-        Map<String, Object> usuario = new HashMap<>();
-        usuario.put("id", id);
-        usuario.put("nombre", nombre);
-        usuario.put("fecha_nacimiento", fechaNacimiento);
-        usuario.put("email", email);
-        usuario.put("foto_url", photoUrl);
-
-        db.collection("usuarios")
-                .document(id)
-                .set(usuario)
+    private void guardarUsuarioEnRepository(String id, String nombre, String fechaNacimiento, String email, String photoUrl) {
+        Log.d(TAG, "Guardando usuario en Firestore con photoUrl: " + photoUrl);
+        UsuarioRepository repository = UsuarioRepository.getInstance();
+        repository.guardarUsuario(id, nombre, fechaNacimiento, email, photoUrl)
                 .addOnSuccessListener(aVoid -> {
                     Log.d(TAG, "Usuario guardado en Firestore con éxito, foto_url: " + photoUrl);
                     requireActivity().runOnUiThread(() -> {
@@ -221,6 +265,10 @@ public class RegistroFragment extends Fragment {
                                 .setTitle(R.string.registration_success_title)
                                 .setMessage(R.string.registration_success_message)
                                 .setPositiveButton(R.string.ok_button, (dialog, which) -> {
+                                    // Forzar actualización del Drawer antes de navegar
+                                    if (requireActivity() instanceof MainActivity) {
+                                        ((MainActivity) requireActivity()).actualizarDrawer();
+                                    }
                                     navController.navigate(R.id.action_registroFragment_to_loginFragment);
                                 })
                                 .show();

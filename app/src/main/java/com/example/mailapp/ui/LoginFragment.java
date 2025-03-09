@@ -6,13 +6,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+
+import com.example.mailapp.MainActivity;
 import com.example.mailapp.R;
 import com.example.mailapp.databinding.FragmentLoginBinding;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
@@ -95,6 +99,10 @@ public class LoginFragment extends Fragment {
                                 mAuth.signOut(); // Cerrar sesión si hay un mismatch
                                 binding.etPasswordLogin.setError("Error: usuario incorrecto autenticado. Intente de nuevo.");
                                 return;
+                            }
+                            // Forzar actualización del Drawer después de iniciar sesión
+                            if (requireActivity() instanceof MainActivity) {
+                                ((MainActivity) requireActivity()).actualizarDrawer();
                             }
                             navController.navigate(R.id.action_loginFragment_to_recibidosFragment);
                         } else {
